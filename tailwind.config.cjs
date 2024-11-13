@@ -56,8 +56,8 @@ module.exports = {
       },
       stroke: {
         skin: {
-          accent: withOpacity("--color-accent")
-        }
+          accent: withOpacity("--color-accent"),
+        },
       },
       fontFamily: {
         mono: ["IBM Plex Mono", "monospace"],

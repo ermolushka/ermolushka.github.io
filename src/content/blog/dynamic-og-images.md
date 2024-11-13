@@ -49,7 +49,7 @@ Titles with non-latin characters won't display properly out of the box. To resol
 // file: loadGoogleFont.ts
 
 async function loadGoogleFonts(
-  text: string
+  text: string,
 ): Promise<
   Array<{ name: string; data: ArrayBuffer; weight: number; style: string }>
 > {

@@ -16,7 +16,7 @@ const sortedPosts = getSortedPosts(posts);
 const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
 const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 
-const socialCount = SOCIALS.filter(social => social.active).length;
+const socialCount = SOCIALS.filter((social) => social.active).length;
 ---
 
 <Layout>
@@ -102,7 +102,7 @@ const socialCount = SOCIALS.filter(social => social.active).length;
                     frontmatter={data}
                     secHeading={false}
                   />
-                )
+                ),
             )}
           </ul>
         </section>
