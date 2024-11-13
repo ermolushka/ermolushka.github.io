@@ -13,7 +13,7 @@ This theme follows best practices and provides accessibility out of the box. Lig
 
 This theme is self-documented \_ which means articles/posts in this theme can also be considered as documentations. Read [the blog posts](https://astro-paper.pages.dev/posts/) or check [the README Documentation Section](#-documentation) for more info.
 
-## 🔥 Features
+## 🔥 Features 
 
 - [x] type-safe markdown
 - [x] super fast performance
