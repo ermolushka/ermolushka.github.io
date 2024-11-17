@@ -6,7 +6,7 @@ export const SITE: Site = {
   profile: "https://github.com/ermolushka",
   desc: "Personal blog about tech, low-level, security.",
   title: "ermolushka (blog)",
-  ogImage: "astropaper-og.jpg",
+  ogImage: "og-image-terminal.svg",
   lightAndDarkMode: true,
   postPerIndex: 4,
   postPerPage: 3,

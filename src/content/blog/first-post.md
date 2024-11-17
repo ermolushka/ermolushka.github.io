@@ -10,8 +10,7 @@ tags:
   - rust
   - zip
   - compression
-description:
-  A quick overview of a ZIP unarchiver tool written in Rust just for fun.
+description: A quick overview of a ZIP unarchiver tool written in Rust just for fun.
 ---
 
 Here are some rules/recommendations, tips & ticks for creating new posts in AstroPaper blog theme.

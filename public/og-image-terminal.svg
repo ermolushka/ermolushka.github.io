@@ -1,0 +1,31 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with subtle gradient -->
+  <defs>
+    <linearGradient id="bg-gradient" x1="0" y1="0" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2d2d2d;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background -->
+  <rect width="100%" height="100%" fill="url(#bg-gradient)"/>
+  
+  <!-- Terminal window frame -->
+  <rect x="250" y="150" width="700" height="330" rx="6" fill="#2d2d2d" stroke="#333333" stroke-width="2"/>
+  
+  <!-- Terminal header -->
+  <rect x="250" y="150" width="700" height="40" rx="6" fill="#333333"/>
+  
+  <!-- Terminal dots -->
+  <circle cx="290" cy="170" r="8" fill="#F44336" opacity="0.7"/>
+  <circle cx="320" cy="170" r="8" fill="#FFC107" opacity="0.7"/>
+  <circle cx="350" cy="170" r="8" fill="#4CAF50" opacity="0.7"/>
+  
+  <!-- Main content -->
+  <text x="290" y="280" fill="#4CAF50" font-family="monospace" font-size="40">$</text>
+  <text x="330" y="280" fill="#ffffff" font-family="monospace" font-size="40" font-weight="bold">~/ermolushka</text>
+  <text x="290" y="340" fill="#888888" font-family="monospace" font-size="28">_</text>
+  
+  <!-- Subtle decorative elements -->
+  <text x="290" y="400" fill="#666666" font-family="monospace" font-size="24">[coding in progress...]</text>
+</svg>

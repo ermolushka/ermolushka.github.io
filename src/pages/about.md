@@ -5,11 +5,9 @@ title: "About"
 
 My name is Alexey, I am passionate about data systems, machine learning, low-level/OS internals, cybersecurity and compilers.
 
-
 <div>
   <img src="/assets/dev.svg" class="sm:w-1/2 mx-auto" alt="coding dev illustration">
 </div>
-
 
 ## Content
 

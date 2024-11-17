@@ -23,7 +23,7 @@ const socialCount = SOCIALS.filter((social) => social.active).length;
   <Header />
   <main id="main-content">
     <section id="hero">
-      <h1>Mingalaba</h1>
+      <h1>$ ~/ermolushka</h1>
       <a
         target="_blank"
         href="/rss.xml"
@@ -42,18 +42,26 @@ const socialCount = SOCIALS.filter((social) => social.active).length;
       </a>
 
       <p>
-        AstroPaper is a minimal, responsive, accessible and SEO-friendly Astro
-        blog theme. This theme follows best practices and provides accessibility
-        out of the box. Light and dark mode are supported by default. Moreover,
-        additional color schemes can also be configured.
+        Hey there! I'm sharing my journey through the tech world here. You'll
+        find my thoughts on programming, occasional tutorials, and things I
+        learn along the way. No frills, just honest experiences and useful bits
+        of knowledge that might help other developers. This space is where I
+        document my experiments, successes, and yes, those interesting failures
+        that taught me something valuable.
       </p>
       <p>
-        Read the blog posts or check
+        Read the
         <LinkButton
           className="underline decoration-dashed underline-offset-4 hover:text-skin-accent"
-          href="https://github.com/satnaing/astro-paper#readme"
+          href="/posts"
         >
-          README
+          blog posts
+        </LinkButton> or check
+        <LinkButton
+          className="underline decoration-dashed underline-offset-4 hover:text-skin-accent"
+          href="/about"
+        >
+          about me
         </LinkButton> for more info.
       </p>
       {
