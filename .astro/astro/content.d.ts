@@ -147,8 +147,8 @@ declare module "astro:content" {
 
   type ContentEntryMap = {
     blog: {
-      "first-post.md": {
-        id: "first-post.md";
+      "rust-zip-unarchiver.md": {
+        id: "rust-zip-unarchiver.md";
         slug: "rust-zip-unarchiver";
         body: string;
         collection: "blog";
