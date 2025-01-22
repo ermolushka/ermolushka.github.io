@@ -30,7 +30,7 @@ Next, you will need `cargo-generate` to be able to use some git repos as a new R
 cargo install cargo-generate
 ```
 
-Finally, as we will need to write a js logic to run in the browser, you will need `npm`, assuming it's installed, good idea to update it (if you wish)
+Finally, as we will need to write a js logic to run in the browser, you will need `npm`, assuming it's installed, good idea to update it (if you wish).
 
 ```
 npm install npm@latest -g
