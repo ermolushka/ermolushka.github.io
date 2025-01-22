@@ -4,7 +4,7 @@ pubDatetime: 2024-11-14T15:22:00Z
 modDatetime: 2024-11-14T15:22:00Z
 title: Implementing ZIP unarchiver in Rust
 slug: rust-zip-unarchiver
-featured: false
+featured: true
 draft: false
 tags:
   - rust

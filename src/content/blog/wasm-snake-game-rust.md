@@ -1,7 +1,7 @@
 ---
 author: Alexey Ermolaev
-pubDatetime: 2025-01-22T21:44:00Z
-modDatetime: 2025-01-22T21:44:00Z
+pubDatetime: 2025-01-22T12:44:00Z
+modDatetime: 2025-01-22T12:44:00Z
 title: Snake game in Rust + Webassembly
 slug: wasm-snake-game-rust
 featured: true
