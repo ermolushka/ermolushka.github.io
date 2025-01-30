@@ -152,6 +152,13 @@ declare module 'astro:content' {
 
 	type ContentEntryMap = {
 		"blog": {
+"pratt-parser-rust.md": {
+	id: "pratt-parser-rust.md";
+  slug: "pratt-parser-compiler-rust";
+  body: string;
+  collection: "blog";
+  data: InferEntrySchema<"blog">
+} & { render(): Render[".md"] };
 "rust-zip-unarchiver.md": {
 	id: "rust-zip-unarchiver.md";
   slug: "rust-zip-unarchiver";
