@@ -18,7 +18,7 @@ Sure, you can use `Kibana` or other logging solutions your company is using but 
 - You need some specific format (unless, you do it on the backend side but it brings additional complexity)
 - You need only sample of data
 
-There is an open-source tool for this purposes called [goreplay](https://github.com/buger/goreplay). It's an amazing tool which allow you to setup data capture out of the box in a matter of a few commands.
+There is an open-source tool for these purposes called [goreplay](https://github.com/buger/goreplay). It's an amazing tool which allow you to setup data capture out of the box in a matter of a few commands.
 
 For example, if your endpoint is called `/predict` and is running on port `5000` you can easily put something like
 
