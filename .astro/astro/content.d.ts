@@ -152,6 +152,13 @@ declare module 'astro:content' {
 
 	type ContentEntryMap = {
 		"blog": {
+"data-capture-k8s.md": {
+	id: "data-capture-k8s.md";
+  slug: "data-capture-ml-endpoints";
+  body: string;
+  collection: "blog";
+  data: InferEntrySchema<"blog">
+} & { render(): Render[".md"] };
 "pratt-parser-rust.md": {
 	id: "pratt-parser-rust.md";
   slug: "pratt-parser-compiler-rust";
