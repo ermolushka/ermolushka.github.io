@@ -541,8 +541,6 @@ Archives
 <p><strong>Peak Performance</strong>: GPTQ achieves the highest inference speed at 598.7 tokens/second, slightly outperforming AWQ and delivering 76% better performance than FP16.</p>
 <p><strong>Slower Loading</strong>: GPTQ takes significantly longer to load (21.0s vs 16.1s for FP16), likely due to model preprocessing or initialization overhead.</p>
 <h2 id="comparative-analysis">Comparative Analysis</h2>
-<h3 id="memory-efficiency-comparison">Memory Efficiency Comparison</h3>
-<p>[Insert comprehensive comparison chart showing memory usage across all methods]</p>
 <h3 id="performance-trade-offs">Performance Trade-offs</h3>
 
 
@@ -680,12 +678,6 @@ Archives
 <li>Consider CPU offloading configurations for extreme cases</li>
 <li>Optimize context length based on actual requirements rather than maximums</li>
 </ul>
-<h3 id="future-considerations">Future Considerations</h3>
-<ol>
-<li><strong>Emerging Quantization Methods</strong>: [What’s coming next]</li>
-<li><strong>Hardware Evolution</strong>: [Next-gen GPU considerations]</li>
-<li><strong>Framework Improvements</strong>: [Expected software advances]</li>
-</ol>
 <h2 id="conclusion">Conclusion</h2>
 <p>Running Llama 8B models on a single RTX 4090 reveals surprising insights about modern quantization techniques. My comprehensive benchmarking shows that the choice of method depends critically on your primary constraint:</p>
 <p><strong>For Memory-Constrained Scenarios</strong>: BitsAndBytes 4-bit is the clear winner, delivering 66% memory reduction (22.6GB → 7.7GB) with acceptable quality preservation, despite 87% slower inference.</p>
