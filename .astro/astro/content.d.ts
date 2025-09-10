@@ -173,6 +173,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: InferEntrySchema<"blog">
 } & { render(): Render[".md"] };
+"vllm-benchmark-4090.md": {
+	id: "vllm-benchmark-4090.md";
+  slug: "vllm-benchmark-4090";
+  body: string;
+  collection: "blog";
+  data: InferEntrySchema<"blog">
+} & { render(): Render[".md"] };
 "wasm-snake-game-rust.md": {
 	id: "wasm-snake-game-rust.md";
   slug: "wasm-snake-game-rust";
@@ -190,5 +197,5 @@ declare module 'astro:content' {
 
 	type AnyEntryMap = ContentEntryMap & DataEntryMap;
 
-	export type ContentConfig = typeof import("../../src/content/config.js");
+	export type ContentConfig = typeof import("./../../src/content/config.js");
 }

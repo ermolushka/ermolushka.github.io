@@ -2,8 +2,8 @@
 author: Alexey Ermolaev
 pubDatetime: 2025-09-10T15:01:00Z
 modDatetime: 2025-09-10T15:01:00Z
-title: Memory Optimization Deep Dive: Running 8B Models on a Single 4090 using vLLM
-slug: vllm-benchmark-8b-4090
+title: Memory Optimization Deep Dive Running 8B Models on a Single 4090 using vLLM
+slug: vllm-benchmark-4090
 featured: true
 draft: false
 tags:
@@ -276,7 +276,7 @@ memory_optimized:
 
 2. **Performance vs Memory Trade-off**: AWQ and GPTQ deliver 70-76% better performance than FP16 but use identical memory (22.7GB vs 22.6GB). This counterintuitive result suggests these "4-bit" models are optimized for speed in vLLM's implementation, trading memory savings for performance gains.
 
-3. **Practical Considerations**: The choice between methods depends heavily on ymy bottleneck - memory constraints favor BitsAndBytes, while performance requirements favor AWQ/GPTQ.
+3. **Practical Considerations**: The choice between methods depends heavily on your bottleneck - memory constraints favor BitsAndBytes, while performance requirements favor AWQ/GPTQ.
 
 ### Surprising Results
 
@@ -301,8 +301,8 @@ memory_optimized:
 - **BitsAndBytes for memory-critical deployments** - only option for extended context lengths
 - Implement proper monitoring, error handling, and graceful degradation
 
-**Resmyce-Constrained Scenarios**:
-- **BitsAndBytes is ymy only viable option** for significant memory reduction
+**Resource-Constrained Scenarios**:
+- **BitsAndBytes is your only viable option** for significant memory reduction
 - Consider CPU offloading configurations for extreme cases
 - Optimize context length based on actual requirements rather than maximums
 
@@ -314,15 +314,15 @@ memory_optimized:
 
 ## Conclusion
 
-Running Llama 8B models on a single RTX 4090 reveals surprising insights about modern quantization techniques. my comprehensive benchmarking shows that the choice of method depends critically on ymy primary constraint:
+Running Llama 8B models on a single RTX 4090 reveals surprising insights about modern quantization techniques. My comprehensive benchmarking shows that the choice of method depends critically on your primary constraint:
 
 **For Memory-Constrained Scenarios**: BitsAndBytes 4-bit is the clear winner, delivering 66% memory reduction (22.6GB → 7.7GB) with acceptable quality preservation, despite 87% slower inference.
 
 **For Performance-Critical Applications**: GPTQ achieves the highest throughput at 599 tokens/second, while AWQ offers similar performance (579 t/s) with better loading characteristics.
 
-**The Quantization Paradox**: my most surprising finding is that pre-quantized AWQ and GPTQ models use identical memory to FP16 while delivering 70-76% better performance. This challenges conventional wisdom about quantization being primarily a memory optimization technique.
+**The Quantization Paradox**: My most surprising finding is that pre-quantized AWQ and GPTQ models use identical memory to FP16 while delivering 70-76% better performance. This challenges conventional wisdom about quantization being primarily a memory optimization technique.
 
-**Key Takeaway**: Modern quantization is more nuanced than expected. BitsAndBytes remains essential for memory optimization, while AWQ/GPTQ excel as performance optimizations rather than memory savers. Understanding these trade-offs enables informed decisions for ymy specific deployment requirements.
+**Key Takeaway**: Modern quantization is more nuanced than expected. BitsAndBytes remains essential for memory optimization, while AWQ/GPTQ excel as performance optimizations rather than memory savers. Understanding these trade-offs enables informed decisions for your specific deployment requirements.
 
 ## Appendix
 
@@ -340,11 +340,11 @@ Running Llama 8B models on a single RTX 4090 reveals surprising insights about m
 | Inference Speed | 339.6 t/s | 42.4 t/s | 579.1 t/s | 598.7 t/s |
 | Speed vs FP16 | - | -87.5% | +70.5% | +76.3% |
 | Total Tokens Generated | 1,792 | 1,799 | 1,792 | 1,792 |
-| **System Resmyces** ||||
+| **System Resources** ||||
 | System RAM Increase | 1,024MB | 163MB | 1,062MB | 1,385MB |
 | System RAM % | 9.6% | 9.0% | 9.7% | 10.6% |
 | **Configuration** ||||
-| Model Smyce | HuggingFace | HuggingFace | Pre-quantized | Pre-quantized |
+| Model Source | HuggingFace | HuggingFace | Pre-quantized | Pre-quantized |
 | Quantization Bits | 16 | 4 (NF4) | 4 | 4 |
 | Framework | vLLM | Transformers+BnB | vLLM | vLLM |
 
