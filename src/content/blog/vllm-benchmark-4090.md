@@ -305,7 +305,7 @@ memory_optimized:
 
 ## Conclusion
 
-Running Llama 8B models on a single RTX 4090 reveals surprising insights about modern quantization techniques. My comprehensive benchmarking shows that the choice of method depends critically on your primary constraint:
+Running Llama 8B models on a single RTX 4090 reveals surprising insights about modern quantization techniques. My benchmarking shows that the choice of method depends critically on your primary constraint:
 
 **For Memory-Constrained Scenarios**: BitsAndBytes 4-bit is the clear winner, delivering 66% memory reduction (22.6GB → 7.7GB) with acceptable quality preservation, despite 87% slower inference.
 

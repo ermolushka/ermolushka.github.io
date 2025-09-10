@@ -679,7 +679,7 @@ Archives
 <li>Optimize context length based on actual requirements rather than maximums</li>
 </ul>
 <h2 id="conclusion">Conclusion</h2>
-<p>Running Llama 8B models on a single RTX 4090 reveals surprising insights about modern quantization techniques. My comprehensive benchmarking shows that the choice of method depends critically on your primary constraint:</p>
+<p>Running Llama 8B models on a single RTX 4090 reveals surprising insights about modern quantization techniques. My benchmarking shows that the choice of method depends critically on your primary constraint:</p>
 <p><strong>For Memory-Constrained Scenarios</strong>: BitsAndBytes 4-bit is the clear winner, delivering 66% memory reduction (22.6GB → 7.7GB) with acceptable quality preservation, despite 87% slower inference.</p>
 <p><strong>For Performance-Critical Applications</strong>: GPTQ achieves the highest throughput at 599 tokens/second, while AWQ offers similar performance (579 t/s) with better loading characteristics.</p>
 <p><strong>The Quantization Paradox</strong>: My most surprising finding is that pre-quantized AWQ and GPTQ models use identical memory to FP16 while delivering 70-76% better performance. This challenges conventional wisdom about quantization being primarily a memory optimization technique.</p>
