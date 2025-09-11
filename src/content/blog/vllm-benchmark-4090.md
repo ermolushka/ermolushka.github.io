@@ -281,6 +281,13 @@ memory_optimized:
 - vLLM's implementation optimizes for speed over memory savings
 - The "4-bit" designation refers to weight storage, not runtime memory
 
+UPD: I got comments after I posted this blog post:
+
+- measuring memory used by vllm engine doesn’t reflect real “model memory”. vllm engine will use the amount of memory defined by memory utilisation percentage either ways, it will always load the model and use the rest for kv cache *pre-allocation* (thats why you always got around 90% of vram), whether the model is big or small, quantized or not. Thats why it might seem like fp16 uses as much as awq/gptq, but in fact vllm just preallocated more kv cache in the quantized scenario.
+- also, the speedup you observed from awq/gptq vs bf16 is mostly due to their use of fused kernels, the result you got for fp16 is from enforce_eager=true, by doing so, you specifically disabled torch.compile which is used in vllm to reduce overhead of the entire model. enforce_eager doesnt only disable cuda graphs, it disables compilation all together.
+
+That's definitely something I missed and will dig deeper into it!
+
 
 ## Possible recommendations
 
