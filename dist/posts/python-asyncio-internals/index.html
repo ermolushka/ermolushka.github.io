@@ -1,0 +1,707 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><!-- Google tag (gtag.js) --><script type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id=G-8MLZNVYK1Z"></script><script type="text/partytown">
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-8MLZNVYK1Z");
+    </script><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://ermolushka.github.io/posts/python-asyncio-internals/"><meta name="generator" content="Astro v4.16.3"><!-- General Meta Tags --><title>Python asyncio internals | ermolushka (blog)</title><meta name="title" content="Python asyncio internals | ermolushka (blog)"><meta name="description" content="A brief intro into asyncio internals in Python"><meta name="author" content="Alexey Ermolaev"><link rel="sitemap" href="/sitemap-index.xml"><!-- Open Graph / Facebook --><meta property="og:title" content="Python asyncio internals | ermolushka (blog)"><meta property="og:description" content="A brief intro into asyncio internals in Python"><meta property="og:url" content="https://ermolushka.github.io/posts/python-asyncio-internals/"><meta property="og:image" content="https://ermolushka.github.io/posts/python-asyncio-internals.png"><!-- Article Published/Modified time --><meta property="article:published_time" content="2025-10-05T12:11:00.000Z"><meta property="article:modified_time" content="2025-06-05T12:11:00.000Z"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://ermolushka.github.io/posts/python-asyncio-internals/"><meta property="twitter:title" content="Python asyncio internals | ermolushka (blog)"><meta property="twitter:description" content="A brief intro into asyncio internals in Python"><meta property="twitter:image" content="https://ermolushka.github.io/posts/python-asyncio-internals.png"><!-- Google JSON-LD Structured data --><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Python asyncio internals | ermolushka (blog)","image":"https://ermolushka.github.io/posts/python-asyncio-internals.png","datePublished":"2025-10-05T12:11:00.000Z","dateModified":"2025-06-05T12:11:00.000Z","author":[{"@type":"Person","name":"Alexey Ermolaev","url":"https://github.com/ermolushka"}]}</script><!-- Google Font --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="preload" as="style" onload="this.onload=null; this.rel='stylesheet';" crossorigin><meta name="theme-color" content=""><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script src="/toggle-theme.js" async></script><link rel="stylesheet" href="/_astro/about.Cp91FjQY.css">
+<style>a:where(.astro-blwjyjpt){position:relative;text-decoration-line:underline;text-decoration-style:dashed}a:where(.astro-blwjyjpt):hover{top:-.125rem;--tw-text-opacity: 1;color:rgba(var(--color-accent),var(--tw-text-opacity))}a:where(.astro-blwjyjpt):focus-visible{padding:.25rem}a:where(.astro-blwjyjpt) svg:where(.astro-blwjyjpt){margin-right:-1.25rem;height:1.5rem;width:1.5rem;--tw-scale-x: .95;--tw-scale-y: .95;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));--tw-text-opacity: 1;color:rgba(var(--color-text-base),var(--tw-text-opacity));opacity:.8}.group:where(.astro-blwjyjpt):hover a:where(.astro-blwjyjpt) svg:where(.astro-blwjyjpt){fill:rgb(var(--color-accent))}
+@keyframes astroFadeInOut{0%{opacity:1}to{opacity:0}}@keyframes astroFadeIn{0%{opacity:0;mix-blend-mode:plus-lighter}to{opacity:1;mix-blend-mode:plus-lighter}}@keyframes astroFadeOut{0%{opacity:1;mix-blend-mode:plus-lighter}to{opacity:0;mix-blend-mode:plus-lighter}}@keyframes astroSlideFromRight{0%{transform:translate(100%)}}@keyframes astroSlideFromLeft{0%{transform:translate(-100%)}}@keyframes astroSlideToRight{to{transform:translate(100%)}}@keyframes astroSlideToLeft{to{transform:translate(-100%)}}@media (prefers-reduced-motion){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}[data-astro-transition-scope]{animation:none!important}}
+.social-icons:where(.astro-wkojbtzc){display:flex;flex-direction:column;flex-wrap:wrap;align-items:center;justify-content:center;gap:.25rem}@media (min-width: 640px){.social-icons:where(.astro-wkojbtzc){align-items:flex-start}}.link-button:where(.astro-wkojbtzc){--tw-scale-x: .9;--tw-scale-y: .9;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));padding:.5rem}.link-button:where(.astro-wkojbtzc):hover{--tw-rotate: 6deg;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.link-button:where(.astro-wkojbtzc){padding:.25rem}}main:where(.astro-vj4tpspi){margin-left:auto;margin-right:auto;width:100%;max-width:48rem;padding-left:1rem;padding-right:1rem;padding-bottom:3rem}.post-title:where(.astro-vj4tpspi){font-size:1.5rem;line-height:2rem;font-weight:600;--tw-text-opacity: 1;color:rgba(var(--color-accent),var(--tw-text-opacity))}
+</style><script type="module" src="/_astro/hoisted.BYHvv9Tn.js"></script>
+<script>!(function(w,p,f,c){if(!window.crossOriginIsolated && !navigator.serviceWorker) return;c=w[p]=Object.assign(w[p]||{},{"lib":"/~partytown/","debug":false});c[f]=(c[f]||[]).concat(["dataLayer.push"])})(window,'partytown','forward');/* Partytown 0.11.0 - MIT QwikDev */
+const t={preserveBehavior:!1},e=e=>{if("string"==typeof e)return[e,t];const[n,r=t]=e;return[n,{...t,...r}]},n=Object.freeze((t=>{const e=new Set;let n=[];do{Object.getOwnPropertyNames(n).forEach((t=>{"function"==typeof n[t]&&e.add(t)}))}while((n=Object.getPrototypeOf(n))!==Object.prototype);return Array.from(e)})());!function(t,r,o,i,a,s,c,l,d,p,u=t,f){function h(){f||(f=1,"/"==(c=(s.lib||"/~partytown/")+(s.debug?"debug/":""))[0]&&(d=r.querySelectorAll('script[type="text/partytown"]'),i!=t?i.dispatchEvent(new CustomEvent("pt1",{detail:t})):(l=setTimeout(v,(null==s?void 0:s.fallbackTimeout)||1e4),r.addEventListener("pt0",w),a?y(1):o.serviceWorker?o.serviceWorker.register(c+(s.swPath||"partytown-sw.js"),{scope:c}).then((function(t){t.active?y():t.installing&&t.installing.addEventListener("statechange",(function(t){"activated"==t.target.state&&y()}))}),console.error):v())))}function y(e){p=r.createElement(e?"script":"iframe"),t._pttab=Date.now(),e||(p.style.display="block",p.style.width="0",p.style.height="0",p.style.border="0",p.style.visibility="hidden",p.setAttribute("aria-hidden",!0)),p.src=c+"partytown-"+(e?"atomics.js?v=0.11.0":"sandbox-sw.html?"+t._pttab),r.querySelector(s.sandboxParent||"body").appendChild(p)}function v(n,o){for(w(),i==t&&(s.forward||[]).map((function(n){const[r]=e(n);delete t[r.split(".")[0]]})),n=0;n<d.length;n++)(o=r.createElement("script")).innerHTML=d[n].innerHTML,o.nonce=s.nonce,r.head.appendChild(o);p&&p.parentNode.removeChild(p)}function w(){clearTimeout(l)}s=t.partytown||{},i==t&&(s.forward||[]).map((function(r){const[o,{preserveBehavior:i}]=e(r);u=t,o.split(".").map((function(e,r,o){var a;u=u[o[r]]=r+1<o.length?u[o[r]]||(a=o[r+1],n.includes(a)?[]:{}):(()=>{let e=null;if(i){const{methodOrProperty:n,thisObject:r}=((t,e)=>{let n=t;for(let t=0;t<e.length-1;t+=1)n=n[e[t]];return{thisObject:n,methodOrProperty:e.length>0?n[e[e.length-1]]:void 0}})(t,o);"function"==typeof n&&(e=(...t)=>n.apply(r,...t))}return function(){let n;return e&&(n=e(arguments)),(t._ptf=t._ptf||[]).push(o,arguments),n}})()}))})),"complete"==r.readyState?h():(t.addEventListener("DOMContentLoaded",h),t.addEventListener("load",h))}(window,document,navigator,top,window.crossOriginIsolated);;(e=>{e.addEventListener("astro:before-swap",e=>{let r=document.body.querySelector("iframe[src*='/~partytown/']");if(r)e.newDocument.body.append(r)})})(document);</script><style>[data-astro-transition-scope="astro-plk3gbjq-1"] { view-transition-name: python-asyncio-internals; }@layer astro { ::view-transition-old(python-asyncio-internals) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(python-asyncio-internals) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(python-asyncio-internals) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(python-asyncio-internals) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-plk3gbjq-1"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-plk3gbjq-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-plk3gbjq-1"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-plk3gbjq-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-plk3gbjq-1"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-plk3gbjq-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-plk3gbjq-1"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-plk3gbjq-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-2"] { view-transition-name: python; }@layer astro { ::view-transition-old(python) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(python) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(python) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(python) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-2"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-2"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-2"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-2"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-2"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-2"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-2"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-2"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-3"] { view-transition-name: asyncio; }@layer astro { ::view-transition-old(asyncio) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(asyncio) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(asyncio) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(asyncio) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-3"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-3"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-3"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-3"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-3"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-3"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-3"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-3"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-4"] { view-transition-name: event-loop; }@layer astro { ::view-transition-old(event-loop) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(event-loop) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(event-loop) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(event-loop) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-4"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-4"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-4"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-4"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-4"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-4"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-4"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-4"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-5"] { view-transition-name: asynchronous; }@layer astro { ::view-transition-old(asynchronous) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(asynchronous) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(asynchronous) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(asynchronous) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-5"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-5"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-5"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-5"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-5"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-5"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-5"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-5"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style></head> <body>  <header class="astro-3ef6ksr2"> <a id="skip-to-content" href="#main-content" class="astro-3ef6ksr2">Skip to content</a> <div class="nav-container astro-3ef6ksr2"> <div class="top-nav-wrap astro-3ef6ksr2"> <a href="/" class="logo whitespace-nowrap astro-3ef6ksr2"> ermolushka (blog) </a> <nav id="nav-menu" class="astro-3ef6ksr2"> <button class="hamburger-menu focus-outline astro-3ef6ksr2" aria-label="Open Menu" aria-expanded="false" aria-controls="menu-items"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon astro-3ef6ksr2"> <line x1="7" y1="12" x2="21" y2="12" class="line astro-3ef6ksr2"></line> <line x1="3" y1="6" x2="21" y2="6" class="line astro-3ef6ksr2"></line> <line x1="12" y1="18" x2="21" y2="18" class="line astro-3ef6ksr2"></line> <line x1="18" y1="6" x2="6" y2="18" class="close astro-3ef6ksr2"></line> <line x1="6" y1="6" x2="18" y2="18" class="close astro-3ef6ksr2"></line> </svg> </button> <ul id="menu-items" class="display-none sm:flex astro-3ef6ksr2"> <li class="astro-3ef6ksr2"> <a href="/posts/" class=" astro-3ef6ksr2">
+Posts
+</a> </li> <li class="astro-3ef6ksr2"> <a href="/tags/" class=" astro-3ef6ksr2">
+Tags
+</a> </li> <li class="astro-3ef6ksr2"> <a href="/about/" class=" astro-3ef6ksr2">
+About
+</a> </li> <li class="astro-3ef6ksr2"> <a href="/archives/" class="group inline-block hover:text-skin-accent focus-outline flex justify-center p-3 sm:p-1 astro-3ef6ksr2" aria-label="archives" title="Archives"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline !hidden sm:!inline-block astro-3ef6ksr2">  <path stroke="none" d="M0 0h24v24H0z" fill="none" class="astro-3ef6ksr2"></path> <path d="M3 4m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" class="astro-3ef6ksr2"></path> <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" class="astro-3ef6ksr2"></path> <path d="M10 12l4 0" class="astro-3ef6ksr2"></path>  </svg> <span class="sm:sr-only astro-3ef6ksr2">
+Archives
+</span> </a> </li> <li class="astro-3ef6ksr2"> <a href="/search/" class="group inline-block hover:text-skin-accent focus-outline p-3 sm:p-1  flex astro-3ef6ksr2" aria-label="search" title="Search"> <svg xmlns="http://www.w3.org/2000/svg" class="scale-125 sm:scale-100 astro-3ef6ksr2"><path d="M19.023 16.977a35.13 35.13 0 0 1-1.367-1.384c-.372-.378-.596-.653-.596-.653l-2.8-1.337A6.962 6.962 0 0 0 16 9c0-3.859-3.14-7-7-7S2 5.141 2 9s3.14 7 7 7c1.763 0 3.37-.66 4.603-1.739l1.337 2.8s.275.224.653.596c.387.363.896.854 1.384 1.367l1.358 1.392.604.646 2.121-2.121-.646-.604c-.379-.372-.885-.866-1.391-1.36zM9 14c-2.757 0-5-2.243-5-5s2.243-5 5-5 5 2.243 5 5-2.243 5-5 5z" class="astro-3ef6ksr2"></path> </svg> <span class="sr-only astro-3ef6ksr2">Search</span> </a> </li> <li class="astro-3ef6ksr2"> <button id="theme-btn" class="focus-outline astro-3ef6ksr2" title="Toggles light & dark" aria-label="auto" aria-live="polite"> <svg xmlns="http://www.w3.org/2000/svg" id="moon-svg" class="astro-3ef6ksr2"> <path d="M20.742 13.045a8.088 8.088 0 0 1-2.077.271c-2.135 0-4.14-.83-5.646-2.336a8.025 8.025 0 0 1-2.064-7.723A1 1 0 0 0 9.73 2.034a10.014 10.014 0 0 0-4.489 2.582c-3.898 3.898-3.898 10.243 0 14.143a9.937 9.937 0 0 0 7.072 2.93 9.93 9.93 0 0 0 7.07-2.929 10.007 10.007 0 0 0 2.583-4.491 1.001 1.001 0 0 0-1.224-1.224zm-2.772 4.301a7.947 7.947 0 0 1-5.656 2.343 7.953 7.953 0 0 1-5.658-2.344c-3.118-3.119-3.118-8.195 0-11.314a7.923 7.923 0 0 1 2.06-1.483 10.027 10.027 0 0 0 2.89 7.848 9.972 9.972 0 0 0 7.848 2.891 8.036 8.036 0 0 1-1.484 2.059z" class="astro-3ef6ksr2"></path> </svg> <svg xmlns="http://www.w3.org/2000/svg" id="sun-svg" class="astro-3ef6ksr2"> <path d="M6.993 12c0 2.761 2.246 5.007 5.007 5.007s5.007-2.246 5.007-5.007S14.761 6.993 12 6.993 6.993 9.239 6.993 12zM12 8.993c1.658 0 3.007 1.349 3.007 3.007S13.658 15.007 12 15.007 8.993 13.658 8.993 12 10.342 8.993 12 8.993zM10.998 19h2v3h-2zm0-17h2v3h-2zm-9 9h3v2h-3zm17 0h3v2h-3zM4.219 18.363l2.12-2.122 1.415 1.414-2.12 2.122zM16.24 6.344l2.122-2.122 1.414 1.414-2.122 2.122zM6.342 7.759 4.22 5.637l1.415-1.414 2.12 2.122zm13.434 10.605-1.414 1.414-2.122-2.122 1.414-1.414z" class="astro-3ef6ksr2"></path> </svg> </button> </li> </ul> </nav> </div> </div> <div class="max-w-3xl mx-auto px-4"> <hr class="border-skin-line" aria-hidden="true"> </div> </header>   <div class="mx-auto flex w-full max-w-3xl justify-start px-2 astro-vj4tpspi"> <button class="focus-outline mb-2 mt-8 flex hover:opacity-75 astro-vj4tpspi" onclick="(() => (history.length === 1) ? window.location = '/' : history.back())()"> <svg xmlns="http://www.w3.org/2000/svg" class="astro-vj4tpspi"><path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z" class="astro-vj4tpspi"></path> </svg><span class="astro-vj4tpspi">Go back</span> </button> </div> <main id="main-content" class="astro-vj4tpspi"> <h1 class="post-title astro-vj4tpspi" data-astro-transition-scope="astro-plk3gbjq-1">Python asyncio internals</h1> <div class="flex items-center space-x-2 opacity-80 my-2 astro-vj4tpspi"><svg xmlns="http://www.w3.org/2000/svg" class="scale-100 inline-block h-6 w-6 min-w-[1.375rem] fill-skin-base" aria-hidden="true"><path d="M7 11h2v2H7zm0 4h2v2H7zm4-4h2v2h-2zm0 4h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2z"></path><path d="M5 22h14c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2h-2V2h-2v2H9V2H7v2H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2zM19 8l.001 12H5V8h14z"></path></svg><span class="sr-only">Published:</span><span class="italic text-base"><time dateTime="2025-10-05T12:11:00.000Z">Oct 5, 2025</time><span aria-hidden="true"> | </span><span class="sr-only"> at </span><span class="text-nowrap">03:11 PM</span></span></div> <article id="article" class="prose mx-auto mt-8 max-w-3xl astro-vj4tpspi"> <p>Nowadays, I am working mostly with Python, Golang, Rust and TypeScript (with NodeJS). I was thinking that it would be good to have a summary of how async runtimes work in that languages. Primarly, when you switch between it often, not to forget nuances.</p>
+<p>This is the first part of the series where I will cover <code>asyncio</code>.</p>
+<p>It won’t be a very detailed guide, but more like a cheatsheet which can be used by anyone interested (and for myself, of course). I will also provide minimal code snippets.</p>
+<h2 id="asyncio">Asyncio</h2>
+<p>I will focus in <code>asyncio</code> and it’s event loop. It’s a built-in library for writing concurrent code. <code>asyncio</code> operates with coroutines which, in turn, use cooperative scheduling to be running in an effective manner. It means that tasks volunterily give up control (the event loop forcibly interrupts a running coroutine).</p>
+<p>The system diagram can be summarized like this:</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>┌────────────────────────────────────────────────────────────────────────┐</span></span>
+<span class="line"><span>│                          asyncio Event Loop                             │</span></span>
+<span class="line"><span>│                                                                          │</span></span>
+<span class="line"><span>│  ┌──────────────────────────────────────────────────────────────────┐ │</span></span>
+<span class="line"><span>│  │                    Core Scheduling Components                     │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  │  ┌─────────────────────┐      ┌──────────────────────────────┐  │ │</span></span>
+<span class="line"><span>│  │  │  Ready Callbacks/   │      │   Timer Heap (Scheduled)     │  │ │</span></span>
+<span class="line"><span>│  │  │      Tasks          │      │   - call_later/call_at       │  │ │</span></span>
+<span class="line"><span>│  │  │  (deque - FIFO)     │      │   - asyncio.sleep            │  │ │</span></span>
+<span class="line"><span>│  │  │                     │      │   (min-heap by deadline)     │  │ │</span></span>
+<span class="line"><span>│  │  └─────────────────────┘      └──────────────────────────────┘  │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  └──────────────────────────────────────────────────────────────────┘ │</span></span>
+<span class="line"><span>│                                                                          │</span></span>
+<span class="line"><span>│  ┌──────────────────────────────────────────────────────────────────┐ │</span></span>
+<span class="line"><span>│  │                 I/O Backend (Platform-specific)                   │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  │  Unix/Linux: epoll, kqueue, devpoll, select (via selectors)     │ │</span></span>
+<span class="line"><span>│  │  Windows: IOCP (Proactor) or Windows Selector                    │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  │  - Monitors file descriptors / handles                           │ │</span></span>
+<span class="line"><span>│  │  - Returns ready I/O events                                       │ │</span></span>
+<span class="line"><span>│  └──────────────────────────────────────────────────────────────────┘ │</span></span>
+<span class="line"><span>│                                                                          │</span></span>
+<span class="line"><span>│  ┌──────────────────────────────────────────────────────────────────┐ │</span></span>
+<span class="line"><span>│  │                    Task &#x26; Future System                           │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  │  Future: Low-level awaitable with result/exception              │ │</span></span>
+<span class="line"><span>│  │  Task: Wraps coroutine, drives execution via _step()            │ │</span></span>
+<span class="line"><span>│  │  TaskGroup (3.11+): Structured concurrency, error propagation   │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  │  Cancellation: Sets flag → injects CancelledError on resume     │ │</span></span>
+<span class="line"><span>│  └──────────────────────────────────────────────────────────────────┘ │</span></span>
+<span class="line"><span>│                                                                          │</span></span>
+<span class="line"><span>│  ┌──────────────────────────────────────────────────────────────────┐ │</span></span>
+<span class="line"><span>│  │                      I/O Abstractions                             │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  │  Streams: High-level async I/O (StreamReader/StreamWriter)      │ │</span></span>
+<span class="line"><span>│  │  Transports: Byte-level I/O abstraction                         │ │</span></span>
+<span class="line"><span>│  │  Protocols: Callback-based interface (legacy)                   │ │</span></span>
+<span class="line"><span>│  └──────────────────────────────────────────────────────────────────┘ │</span></span>
+<span class="line"><span>│                                                                          │</span></span>
+<span class="line"><span>│  ┌──────────────────────────────────────────────────────────────────┐ │</span></span>
+<span class="line"><span>│  │                    Extension Systems                              │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  │  Executors: Thread/Process pools for blocking work              │ │</span></span>
+<span class="line"><span>│  │  Signal Handlers: Unix signal integration                        │ │</span></span>
+<span class="line"><span>│  │  Subprocess: Async process management                            │ │</span></span>
+<span class="line"><span>│  │  Context Variables: Per-task context propagation                │ │</span></span>
+<span class="line"><span>│  │  Async Generators: Finalization &#x26; cleanup                        │ │</span></span>
+<span class="line"><span>│  └──────────────────────────────────────────────────────────────────┘ │</span></span>
+<span class="line"><span>│                                                                          │</span></span>
+<span class="line"><span>│  ┌──────────────────────────────────────────────────────────────────┐ │</span></span>
+<span class="line"><span>│  │              Exception &#x26; Debug Infrastructure                     │ │</span></span>
+<span class="line"><span>│  │                                                                    │ │</span></span>
+<span class="line"><span>│  │  Exception Handler: Logs unhandled task exceptions              │ │</span></span>
+<span class="line"><span>│  │  Debug Mode: Tracks slow callbacks, unawaited coroutines        │ │</span></span>
+<span class="line"><span>│  └──────────────────────────────────────────────────────────────────┘ │</span></span>
+<span class="line"><span>└────────────────────────────────────────────────────────────────────────┘</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>The event loop workflow is rather simple. I will simplify it and will ignore some details but overall the flow is:</p>
+<ol>
+<li>Move due scheduled callbacks (timers) to the ready queue</li>
+</ol>
+<p>The event loop keeps a min-heap of scheduled handles (timers).
+Each has a _when timestamp.
+Loop peeks at the soonest one:</p>
+<p>If *when &#x3C;= now, it pops it and appends to *ready.
+If not yet due, it stops checking (heap is sorted).</p>
+<p><strong>This moves callbacks from the Timer Heap → Ready Queue when they’re due.</strong></p>
+<ol start="2">
+<li>Compute how long to wait (poll timeout)</li>
+</ol>
+<p>If _ready is not empty, timeout = 0 → don’t block; just run ready callbacks.
+Else if _scheduled not empty:</p>
+<p>Timeout = scheduled[0].when - now (until next timer is due).
+Else:</p>
+<p>Timeout = None (block indefinitely — no tasks waiting).
+<strong>This determines how long to wait for I/O events.</strong></p>
+<ol start="3">
+<li>Poll I/O backend (selectors / IOCP)</li>
+</ol>
+<p>The event loop calls <code>self._selector.select(timeout)</code>.
+The selector blocks for at most that timeout.</p>
+<p>On Unix: epoll, kqueue, or select via selectors module.
+On Windows: IOCP (Proactor), or a SelectSelector if manually chosen.
+<strong>It returns a list of file objects that are ready for I/O (read/write).</strong></p>
+<ol start="4">
+<li>Move ready I/O callbacks to the ready queue</li>
+</ol>
+<p>For each ready file descriptor:</p>
+<p>Retrieve the registered read/write callbacks.
+If still valid and not cancelled, append to _ready.
+<strong>Now the ready queue contains both due timers and ready I/O callbacks.</strong></p>
+<ol start="5">
+<li>Drain the ready queue</li>
+</ol>
+<p>The loop drains *ready by calling each handle’s *run() method.
+Each handle may:</p>
+<p>Resume a coroutine (via its Task’s _step()).
+Schedule new timers or tasks.
+Add more callbacks to _ready.
+<strong>This is where actual coroutine code runs — everything else above is just bookkeeping.</strong></p>
+<ol start="6">
+<li>Handle exceptions (optional step)</li>
+</ol>
+<p>If a callback raises and doesn’t handle it:</p>
+<p>The loop passes it to call_exception_handler().
+Usually logs it unless a custom handler is set.</p>
+<h2 id="notes">Notes</h2>
+<p>You may be wondering what’s the difference between <code>corouitine</code> and <code>task</code>. When you await coroutine, you’re executing it inside the current task (probably, main but not limited). The current task suspends until <code>do_calculation()</code> completes.</p>
+<p>Example:</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    result </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> await</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6"> do_calculation</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span><span style="color:#C2C3C5;--shiki-dark:#637777"> #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> main() is awaiting coroutine</span></span>
+<span class="line"></span></code></pre>
+<p>When you wrap coroutine in a separate task, you schedule to run it concurrently.</p>
+<p>Example:</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    task </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">create_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">do_calculation</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span><span style="color:#C2C3C5;--shiki-dark:#637777"> #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> creates a new task, main() continues immediately</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    result </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> task</span></span>
+<span class="line"></span></code></pre>
+<p>Some fast code snippets as a reference</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># Coroutine</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">import</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> greet</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">(</span><span style="color:#FF9800;--shiki-dark:#7FDBCA">name</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">)</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"Hello </span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">name</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D">!"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">1</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"Goodbye </span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">name</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D">!"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_coroutine</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">    #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> Awaiting coroutine runs it *in this task* (sequentially)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6"> greet</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Alice</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6"> greet</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Bob</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_coroutine</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># Tasks with concurrency</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> do_work</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">(</span><span style="color:#FF9800;--shiki-dark:#7FDBCA">name</span><span style="color:#212121;--shiki-dark:#D6DEEB">,</span><span style="color:#FF9800;--shiki-dark:#7FDBCA"> delay</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">)</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"</span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">name</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D"> started"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">delay</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"</span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">name</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D"> done"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    return</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"result-</span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">name</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D">"</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_tasks</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">    #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> Create concurrent tasks</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    t1 </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">create_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">do_work</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">A</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#1976D2;--shiki-dark:#F78C6C"> 2</span><span style="color:#212121;--shiki-dark:#D6DEEB">))</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    t2 </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">create_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">do_work</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">B</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#1976D2;--shiki-dark:#F78C6C"> 1</span><span style="color:#212121;--shiki-dark:#D6DEEB">))</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Both started!</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">    #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> Wait for both</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    results </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">gather</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">t1</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#212121;--shiki-dark:#82AAFF"> t2</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Results:</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#212121;--shiki-dark:#82AAFF"> results</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_tasks</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># Queue (producer-consumer)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> producer</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">(</span><span style="color:#FF9800;--shiki-dark:#7FDBCA">queue</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">)</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    for</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> i </span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">in</span><span style="color:#6F42C1;--shiki-dark:#C5E478"> range</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">5</span><span style="color:#212121;--shiki-dark:#D6DEEB">):</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">        print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"Producing </span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">i</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">        await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> queue</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">put</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">i</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">        await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">0.5</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> queue</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">put</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#FF5874">None</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span><span style="color:#C2C3C5;--shiki-dark:#637777">  #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> Sentinel for termination</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> consumer</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">(</span><span style="color:#FF9800;--shiki-dark:#7FDBCA">queue</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">)</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    while</span><span style="color:#1976D2;--shiki-dark:#FF5874"> True</span><span style="color:#212121;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">        item </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> queue</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">get</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">        if</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> item </span><span style="color:#D32F2F;--shiki-dark:#C792EA">is</span><span style="color:#1976D2;--shiki-dark:#FF5874"> None</span><span style="color:#212121;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">            break</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">        print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"Consuming </span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">item</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">        await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">1</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_queue</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    q </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">Queue</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">gather</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">producer</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">q</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6"> consumer</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">q</span><span style="color:#212121;--shiki-dark:#D6DEEB">))</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_queue</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># Tasks cancellation</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> long_job</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    try</span><span style="color:#212121;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">        print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Task started</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">        await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">10</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">        print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Task finished</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    except</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">CancelledError</span><span style="color:#212121;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">        print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Task was cancelled!</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_tasks_cancel</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    t </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">create_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">long_job</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">2</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    t</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">cancel</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> t  </span><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> must await to handle cancellation cleanly</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_tasks_cancel</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># Timeout</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> slow</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">5</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    return</span><span style="color:#22863A;--shiki-dark:#D9F5DD"> "</span><span style="color:#22863A;--shiki-dark:#ECC48D">done</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_timeout</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    try</span><span style="color:#212121;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">        await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">wait_for</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">slow</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#212121;--shiki-dark:#D7DBE0"> timeout</span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#1976D2;--shiki-dark:#F78C6C">2</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    except</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">TimeoutError</span><span style="color:#212121;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">        print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Timed out!</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_timeout</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># TaskGroups (all tasks inside the group complete or cancel together) Python 3.11+</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> worker</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">(</span><span style="color:#FF9800;--shiki-dark:#7FDBCA">n</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">)</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">n</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"Worker </span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">n</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D"> done"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_task_group</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    async</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> with</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">TaskGroup</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> as</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> tg</span><span style="color:#212121;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">        tg</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">create_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">worker</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">1</span><span style="color:#212121;--shiki-dark:#D6DEEB">))</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">        tg</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">create_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">worker</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">2</span><span style="color:#212121;--shiki-dark:#D6DEEB">))</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">        tg</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">create_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">worker</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">3</span><span style="color:#212121;--shiki-dark:#D6DEEB">))</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">All workers done</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_task_group</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># Executors for Blocking Code (To run blocking functions (e.g., file I/O, heavy CPU code))</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">import</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> time</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> blocking_task</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    time</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">2</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    return</span><span style="color:#22863A;--shiki-dark:#D9F5DD"> "</span><span style="color:#22863A;--shiki-dark:#ECC48D">finished blocking task</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_blocking</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    loop </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">get_running_loop</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">    #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> run_in_executor() (or asyncio.to_thread) runs blocking code in a thread or process pool</span></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">    #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> so it doesnâ€™t block the loop.</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    result </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> loop</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run_in_executor</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#FF5874">None</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#212121;--shiki-dark:#82AAFF"> blocking_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">result</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_blocking</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># Synchronization Primitives</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">lock </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">Lock</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> worker_sync</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">(</span><span style="color:#FF9800;--shiki-dark:#7FDBCA">name</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">)</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    async</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> with</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> lock</span><span style="color:#212121;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">        print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"</span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">name</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D"> has lock"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">        await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">1</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#D32F2F;--shiki-dark:#C792EA">f</span><span style="color:#22863A;--shiki-dark:#ECC48D">"</span><span style="color:#1976D2;--shiki-dark:#82AAFF">{</span><span style="color:#212121;--shiki-dark:#82AAFF">name</span><span style="color:#1976D2;--shiki-dark:#82AAFF">}</span><span style="color:#22863A;--shiki-dark:#ECC48D"> released lock"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_sync</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">    #</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> Only one coroutine at a time can hold the lock.</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">gather</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">worker_sync</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">A</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6"> worker_sync</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">B</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6"> worker_sync</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">C</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D6DEEB">))</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_sync</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"># gathering waiting</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> wait() gives you more granular control (timeouts, partial completions).</span></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> gather() waits for all tasks or fails if any do.</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> job_gather</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">(</span><span style="color:#FF9800;--shiki-dark:#7FDBCA">i</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">)</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">sleep</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">i</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">    return</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> i</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#D32F2F;--shiki-dark:#C792EA">async</span><span style="color:#D32F2F;--shiki-dark:#C792EA"> def</span><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic"> main_gathering</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">()</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">:</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    tasks </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD"> [</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">create_task</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">job_gather</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">i</span><span style="color:#212121;--shiki-dark:#D6DEEB">))</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> for</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> i </span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">in</span><span style="color:#6F42C1;--shiki-dark:#C5E478"> range</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#1976D2;--shiki-dark:#F78C6C">3</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">]</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">    done</span><span style="color:#212121;--shiki-dark:#D6DEEB">,</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> pending </span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> await</span><span style="color:#24292EFF;--shiki-dark:#D6DEEB"> asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">wait</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#212121;--shiki-dark:#82AAFF">tasks</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#212121;--shiki-dark:#D7DBE0"> timeout</span><span style="color:#D32F2F;--shiki-dark:#C792EA">=</span><span style="color:#1976D2;--shiki-dark:#F78C6C">1.5</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Done:</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#212121;--shiki-dark:#D9F5DD"> [</span><span style="color:#212121;--shiki-dark:#82AAFF">t.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">result</span><span style="color:#212121;--shiki-dark:#D6DEEB">()</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> for</span><span style="color:#212121;--shiki-dark:#82AAFF"> t </span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">in</span><span style="color:#212121;--shiki-dark:#82AAFF"> done</span><span style="color:#212121;--shiki-dark:#D9F5DD">]</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"><span style="color:#6F42C1;--shiki-dark:#C5E478">    print</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#22863A;--shiki-dark:#ECC48D">Pending:</span><span style="color:#22863A;--shiki-dark:#D9F5DD">"</span><span style="color:#212121;--shiki-dark:#D9F5DD">,</span><span style="color:#212121;--shiki-dark:#D9F5DD"> [</span><span style="color:#212121;--shiki-dark:#82AAFF">t._coro.</span><span style="color:#1976D2;--shiki-dark:#82AAFF">__name__</span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic"> for</span><span style="color:#212121;--shiki-dark:#82AAFF"> t </span><span style="color:#D32F2F;font-style:inherit;--shiki-dark:#C792EA;--shiki-dark-font-style:italic">in</span><span style="color:#212121;--shiki-dark:#82AAFF"> pending</span><span style="color:#212121;--shiki-dark:#D9F5DD">]</span><span style="color:#212121;--shiki-dark:#D6DEEB">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D6DEEB">asyncio</span><span style="color:#212121;--shiki-dark:#D6DEEB">.</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">run</span><span style="color:#212121;--shiki-dark:#D6DEEB">(</span><span style="color:#6F42C1;--shiki-dark:#B2CCD6">main_gathering</span><span style="color:#212121;--shiki-dark:#D6DEEB">())</span></span>
+<span class="line"></span></code></pre> </article> <ul class="my-8 astro-vj4tpspi"> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/python/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-2"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">python</span> </a> </li> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/asyncio/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-3"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">asyncio</span> </a> </li> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/event-loop/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-4"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">event-loop</span> </a> </li> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/asynchronous/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-5"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">asynchronous</span> </a> </li>  </ul> <div class="flex flex-col-reverse items-center justify-between gap-6 sm:flex-row-reverse sm:items-end sm:gap-4 astro-vj4tpspi"> <button id="back-to-top" class="focus-outline whitespace-nowrap py-1 hover:opacity-75 astro-vj4tpspi"> <svg xmlns="http://www.w3.org/2000/svg" class="rotate-90 astro-vj4tpspi"> <path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z" class="astro-vj4tpspi"></path> </svg> <span class="astro-vj4tpspi">Back to Top</span> </button> <div class="social-icons astro-wkojbtzc"> <span class="italic astro-wkojbtzc">Share this post on:</span> <div class="text-center astro-wkojbtzc"> <a href="https://wa.me/?text=https://ermolushka.github.io/posts/python-asyncio-internals/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post via WhatsApp"> <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="icon-tabler"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+      <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"></path>
+      <path d="M9 10a0.5 .5 0 0 0 1 0v-1a0.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a0.5 .5 0 0 0 0 -1h-1a0.5 .5 0 0 0 0 1"></path>
+    </svg> <span class="sr-only astro-wkojbtzc">Share this post via WhatsApp</span> </a><a href="https://www.facebook.com/sharer.php?u=https://ermolushka.github.io/posts/python-asyncio-internals/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post on Facebook"> <svg
+    xmlns="http://www.w3.org/2000/svg"
+    class="icon-tabler"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+    <path
+      d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"
+    ></path>
+  </svg> <span class="sr-only astro-wkojbtzc">Share this post on Facebook</span> </a><a href="https://x.com/intent/post?url=https://ermolushka.github.io/posts/python-asyncio-internals/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post on X"> <svg  
+      xmlns="http://www.w3.org/2000/svg"
+      class="icon-tabler"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 4l11.733 16h4.267l-11.733 -16z" /><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
+    </svg> <span class="sr-only astro-wkojbtzc">Share this post on X</span> </a><a href="https://t.me/share/url?url=https://ermolushka.github.io/posts/python-asyncio-internals/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post via Telegram"> <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="icon-tabler"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4"></path>
+      </svg> <span class="sr-only astro-wkojbtzc">Share this post via Telegram</span> </a><a href="https://pinterest.com/pin/create/button/?url=https://ermolushka.github.io/posts/python-asyncio-internals/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post on Pinterest"> <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="icon-tabler"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+      <line x1="8" y1="20" x2="12" y2="11"></line>
+      <path d="M10.7 14c.437 1.263 1.43 2 2.55 2c2.071 0 3.75 -1.554 3.75 -4a5 5 0 1 0 -9.7 1.7"></path>
+      <circle cx="12" cy="12" r="9"></circle>
+    </svg> <span class="sr-only astro-wkojbtzc">Share this post on Pinterest</span> </a><a href="mailto:?subject=See%20this%20post&#38;body=https://ermolushka.github.io/posts/python-asyncio-internals/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post via email"> <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="icon-tabler"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+      <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+      <polyline points="3 7 12 13 21 7"></polyline>
+    </svg> <span class="sr-only astro-wkojbtzc">Share this post via email</span> </a> </div> </div>  </div> <hr class="my-6 border-dashed astro-vj4tpspi"> <!-- Previous/Next Post Buttons --> <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 astro-vj4tpspi"> <a href="/posts/data-capture-ml-endpoints" class="flex w-full gap-1 hover:opacity-75 astro-vj4tpspi"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left flex-none astro-vj4tpspi">  <path stroke="none" d="M0 0h24v24H0z" fill="none" class="astro-vj4tpspi"></path> <path d="M15 6l-6 6l6 6" class="astro-vj4tpspi"></path>  </svg> <div class="astro-vj4tpspi"> <span class="astro-vj4tpspi">Previous Post</span> <div class="text-sm text-skin-accent/85 astro-vj4tpspi">Data capture for ML endpoints</div> </div> </a> <a href="/posts/pratt-parser-compiler-rust" class="flex w-full justify-end gap-1 text-right hover:opacity-75 sm:col-start-2 astro-vj4tpspi"> <div class="astro-vj4tpspi"> <span class="astro-vj4tpspi">Next Post</span> <div class="text-sm text-skin-accent/85 astro-vj4tpspi">Pratt Parsing intro for the compiler development</div> </div> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right flex-none astro-vj4tpspi">  <path stroke="none" d="M0 0h24v24H0z" fill="none" class="astro-vj4tpspi"></path> <path d="M9 6l6 6l-6 6" class="astro-vj4tpspi"></path>  </svg> </a> </div> </main> <footer class="mt-auto astro-sz7xmlte"> <div class="max-w-3xl mx-auto px-0"> <hr class="border-skin-line" aria-hidden="true"> </div> <div class="footer-wrapper astro-sz7xmlte"> <div class="social-icons flex astro-upu6fzxr"> <a href="https://github.com/ermolushka" class="group inline-block hover:text-skin-accent link-button astro-upu6fzxr" title=" ermolushka (blog) on Github"> <svg
+    xmlns="http://www.w3.org/2000/svg"
+    class="icon-tabler"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+    <path
+      d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"
+    ></path>
+  </svg> <span class="sr-only astro-upu6fzxr"> ermolushka (blog) on Github</span> </a> </div>  <div class="copyright-wrapper astro-sz7xmlte"> <span class="astro-sz7xmlte">Copyright &#169; 2025</span> <span class="separator astro-sz7xmlte">&nbsp;|&nbsp;</span> <span class="astro-sz7xmlte">All rights reserved.</span> </div> </div> </footer>   </body></html>  <script data-astro-rerun>
+  /** Create a progress indicator
+   *  at the top */
+  function createProgressBar() {
+    // Create the main container div
+    const progressContainer = document.createElement("div");
+    progressContainer.className =
+      "progress-container fixed top-0 z-10 h-1 w-full bg-skin-fill";
+
+    // Create the progress bar div
+    const progressBar = document.createElement("div");
+    progressBar.className = "progress-bar h-1 w-0 bg-skin-accent";
+    progressBar.id = "myBar";
+
+    // Append the progress bar to the progress container
+    progressContainer.appendChild(progressBar);
+
+    // Append the progress container to the document body or any other desired parent element
+    document.body.appendChild(progressContainer);
+  }
+  createProgressBar();
+
+  /** Update the progress bar
+   *  when user scrolls */
+  function updateScrollProgress() {
+    document.addEventListener("scroll", () => {
+      const winScroll =
+        document.body.scrollTop || document.documentElement.scrollTop;
+      const height =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      if (document) {
+        const myBar = document.getElementById("myBar");
+        if (myBar) {
+          myBar.style.width = scrolled + "%";
+        }
+      }
+    });
+  }
+  updateScrollProgress();
+
+  /** Attaches links to headings in the document,
+   *  allowing sharing of sections easily */
+  function addHeadingLinks() {
+    const headings = Array.from(
+      document.querySelectorAll("h2, h3, h4, h5, h6"),
+    );
+    for (const heading of headings) {
+      heading.classList.add("group");
+      const link = document.createElement("a");
+      link.className =
+        "heading-link ml-2 opacity-0 group-hover:opacity-100 focus:opacity-100";
+      link.href = "#" + heading.id;
+
+      const span = document.createElement("span");
+      span.ariaHidden = "true";
+      span.innerText = "#";
+      link.appendChild(span);
+      heading.appendChild(link);
+    }
+  }
+  addHeadingLinks();
+
+  /** Attaches copy buttons to code blocks in the document,
+   * allowing users to copy code easily. */
+  function attachCopyButtons() {
+    const copyButtonLabel = "Copy";
+    const codeBlocks = Array.from(document.querySelectorAll("pre"));
+
+    for (const codeBlock of codeBlocks) {
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+
+      const copyButton = document.createElement("button");
+      copyButton.className =
+        "copy-code absolute right-3 -top-3 rounded bg-skin-card px-2 py-1 text-xs leading-4 text-skin-base font-medium";
+      copyButton.innerHTML = copyButtonLabel;
+      codeBlock.setAttribute("tabindex", "0");
+      codeBlock.appendChild(copyButton);
+
+      // wrap codebock with relative parent element
+      codeBlock?.parentNode?.insertBefore(wrapper, codeBlock);
+      wrapper.appendChild(codeBlock);
+
+      copyButton.addEventListener("click", async () => {
+        await copyCode(codeBlock, copyButton);
+      });
+    }
+
+    async function copyCode(block, button) {
+      const code = block.querySelector("code");
+      const text = code?.innerText;
+
+      await navigator.clipboard.writeText(text ?? "");
+
+      // visual feedback that task is completed
+      button.innerText = "Copied";
+
+      setTimeout(() => {
+        button.innerText = copyButtonLabel;
+      }, 700);
+    }
+  }
+  attachCopyButtons();
+
+  /** Scrolls the document to the top when
+   * the "Back to Top" button is clicked. */
+  function backToTop() {
+    document.querySelector("#back-to-top")?.addEventListener("click", () => {
+      document.body.scrollTop = 0; // For Safari
+      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    });
+  }
+  backToTop();
+
+  /* Go to page start after page swap */
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+  );
+</script>

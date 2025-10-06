@@ -166,6 +166,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: InferEntrySchema<"blog">
 } & { render(): Render[".md"] };
+"python-asyncio-internals.md": {
+	id: "python-asyncio-internals.md";
+  slug: "python-asyncio-internals";
+  body: string;
+  collection: "blog";
+  data: InferEntrySchema<"blog">
+} & { render(): Render[".md"] };
 "rust-zip-unarchiver.md": {
 	id: "rust-zip-unarchiver.md";
   slug: "rust-zip-unarchiver";
