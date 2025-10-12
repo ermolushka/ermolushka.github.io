@@ -159,6 +159,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: InferEntrySchema<"blog">
 } & { render(): Render[".md"] };
+"elephant-vm.md": {
+	id: "elephant-vm.md";
+  slug: "elephant-vm-rust";
+  body: string;
+  collection: "blog";
+  data: InferEntrySchema<"blog">
+} & { render(): Render[".md"] };
 "pratt-parser-rust.md": {
 	id: "pratt-parser-rust.md";
   slug: "pratt-parser-compiler-rust";
