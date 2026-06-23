@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="a-bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#080c18"/>
+      <stop offset="100%" stop-color="#0d1529"/>
+    </linearGradient>
+    <radialGradient id="a-glow" cx="600" cy="190" r="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b5bdb" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#3b5bdb" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="a-blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <style>
+    /* inner groups rotate around local (0,0) which is the translate origin */
+    .a-o1 { animation: a-spin 10s linear infinite; transform-origin: 0 0; }
+    .a-o2 { animation: a-spin-r 15s linear infinite; transform-origin: 0 0; }
+    .a-o3 { animation: a-spin 22s linear infinite; transform-origin: 0 0; }
+    .a-pulse { animation: a-pulse 2.8s ease-in-out infinite; }
+    .a-lbl  { animation: a-breathe 3s ease-in-out infinite; }
+    .a-lbl2 { animation: a-breathe 3s ease-in-out infinite; animation-delay: .7s; }
+    .a-lbl3 { animation: a-breathe 3s ease-in-out infinite; animation-delay: 1.4s; }
+    @keyframes a-spin   { from { transform: rotate(0deg);   } to { transform: rotate(360deg);  } }
+    @keyframes a-spin-r { from { transform: rotate(0deg);   } to { transform: rotate(-360deg); } }
+    @keyframes a-pulse  { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+    @keyframes a-breathe{ 0%,100% { opacity: .4;  } 50% { opacity: .75; } }
+  </style>
+
+  <!-- background -->
+  <rect width="1200" height="380" fill="url(#a-bg)"/>
+
+  <!-- subtle grid -->
+  <g stroke="#8ba4f5" stroke-width=".5" opacity=".03">
+    <line x1="0" y1="95" x2="1200" y2="95"/>
+    <line x1="0" y1="190" x2="1200" y2="190"/>
+    <line x1="0" y1="285" x2="1200" y2="285"/>
+    <line x1="300" y1="0" x2="300" y2="380"/>
+    <line x1="600" y1="0" x2="600" y2="380"/>
+    <line x1="900" y1="0" x2="900" y2="380"/>
+  </g>
+
+  <!-- center glow -->
+  <circle cx="600" cy="190" r="210" fill="url(#a-glow)"/>
+
+  <!-- orbital tracks (static, not animated) -->
+  <g transform="translate(600,190)">
+    <circle r="78"  fill="none" stroke="#3b5bdb" stroke-width=".6" stroke-opacity=".3"/>
+    <circle r="126" fill="none" stroke="#22d3ee" stroke-width=".6" stroke-opacity=".2" stroke-dasharray="3 6"/>
+    <circle r="170" fill="none" stroke="#f97316" stroke-width=".5" stroke-opacity=".15" stroke-dasharray="2 9"/>
+  </g>
+
+  <!-- orbit 1: ready queue / coroutines — inner ring (indigo) -->
+  <!-- outer g positions to center; inner g rotates around that center -->
+  <g transform="translate(600,190)">
+    <g class="a-o1">
+      <circle cx="78"  cy="0"   r="7"   fill="#4c6ef5" filter="url(#a-blur)"/>
+      <circle cx="0"   cy="78"  r="5.5" fill="#5c7cfa"/>
+      <circle cx="-78" cy="0"   r="6.5" fill="#4c6ef5"/>
+      <circle cx="0"   cy="-78" r="5"   fill="#748ffc"/>
+      <circle cx="55"  cy="55"  r="4"   fill="#748ffc" opacity=".7"/>
+    </g>
+  </g>
+
+  <!-- orbit 2: I/O events — middle ring (cyan) -->
+  <g transform="translate(600,190)">
+    <g class="a-o2">
+      <circle cx="126"  cy="0"    r="7.5" fill="#22d3ee" filter="url(#a-blur)"/>
+      <circle cx="-126" cy="0"    r="6"   fill="#06b6d4"/>
+      <circle cx="0"    cy="126"  r="5.5" fill="#0891b2"/>
+      <circle cx="0"    cy="-126" r="5"   fill="#22d3ee" opacity=".8"/>
+      <circle cx="89"   cy="-89"  r="4"   fill="#38bdf8"/>
+      <circle cx="-89"  cy="89"   r="4"   fill="#38bdf8" opacity=".7"/>
+    </g>
+  </g>
+
+  <!-- orbit 3: timers — outer ring (orange) -->
+  <g transform="translate(600,190)">
+    <g class="a-o3">
+      <circle cx="170"  cy="0"    r="6.5" fill="#f97316" filter="url(#a-blur)"/>
+      <circle cx="-170" cy="0"    r="5"   fill="#fb923c"/>
+      <circle cx="0"    cy="-170" r="4.5" fill="#ea580c"/>
+      <circle cx="120"  cy="-120" r="4"   fill="#f97316" opacity=".6"/>
+    </g>
+  </g>
+
+  <!-- center nucleus -->
+  <circle cx="600" cy="190" r="62" fill="#080c18" stroke="#3b5bdb" stroke-width="1.5" class="a-pulse"/>
+  <circle cx="600" cy="190" r="60" fill="none" stroke="#3b5bdb" stroke-width=".5" stroke-opacity=".25" stroke-dasharray="5 10"/>
+  <text x="600" y="183" text-anchor="middle" fill="#8ba4f5" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" letter-spacing=".5">asyncio</text>
+  <text x="600" y="200" text-anchor="middle" fill="#6c8be8" font-family="IBM Plex Mono,monospace" font-size="11">event loop</text>
+
+  <!-- left labels -->
+  <circle cx="200" cy="126" r="3.5" fill="#4c6ef5" opacity=".55"/>
+  <circle cx="200" cy="193" r="3.5" fill="#22d3ee" opacity=".55"/>
+  <circle cx="200" cy="256" r="3.5" fill="#f97316" opacity=".55"/>
+
+  <text x="185" y="128" text-anchor="end" fill="#4c6ef5" font-family="IBM Plex Mono,monospace" font-size="11" class="a-lbl">ready_queue</text>
+  <text x="185" y="143" text-anchor="end" fill="#4c6ef5" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".45">(deque, FIFO)</text>
+  <text x="185" y="195" text-anchor="end" fill="#22d3ee" font-family="IBM Plex Mono,monospace" font-size="11" class="a-lbl2">I/O selector</text>
+  <text x="185" y="210" text-anchor="end" fill="#22d3ee" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".45">(epoll / kqueue)</text>
+  <text x="185" y="258" text-anchor="end" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="11" class="a-lbl3">call_later()</text>
+  <text x="185" y="273" text-anchor="end" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".45">(min-heap)</text>
+
+  <!-- right labels -->
+  <text x="1015" y="128" fill="#4c6ef5" font-family="IBM Plex Mono,monospace" font-size="11" class="a-lbl">coroutines</text>
+  <text x="1015" y="143" fill="#4c6ef5" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".45">async / await</text>
+  <text x="1015" y="195" fill="#22d3ee" font-family="IBM Plex Mono,monospace" font-size="11" class="a-lbl2">callbacks</text>
+  <text x="1015" y="210" fill="#22d3ee" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".45">on fd ready</text>
+  <text x="1015" y="258" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="11" class="a-lbl3">scheduled</text>
+  <text x="1015" y="273" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".45">asyncio.sleep()</text>
+</svg>

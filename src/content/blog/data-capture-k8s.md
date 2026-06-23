@@ -9,6 +9,7 @@ draft: false
 tags:
   - data capture
 description: One of the approaches of how how you can add data capture to your ML endpoints
+headerArt: /art/k8s.svg
 ---
 
 Imagine, you have some endpoint running somewhere. What you need is to capture your requests and responses. Maybe you will need to for debugging, training some ML models based on this data or something else.

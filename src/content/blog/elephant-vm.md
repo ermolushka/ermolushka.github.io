@@ -12,6 +12,7 @@ tags:
   - stack
   - compiler
 description: An implementation of a simple stack-based VM written in Rust
+headerArt: /art/elephant-vm.svg
 ---
 
 I've always wanted to build a virtual machine from scratch. There's something fascinating about creating a system that can execute code, manage memory, and handle control flow - essentially building a computer within a computer.

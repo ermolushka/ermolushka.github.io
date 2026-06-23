@@ -14,6 +14,7 @@ tags:
   - Llama
   - quantization
 description: An exploration of quantization techniques and memory optimization strategies for running Llama 8B models efficiently on consumer hardware using vLLM
+headerArt: /art/vllm.svg
 ---
 
 ## Introduction

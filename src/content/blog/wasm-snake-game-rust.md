@@ -15,6 +15,7 @@ tags:
   - js
   - html
 description: Snake game written in Rust and compiled to Webassemly to run in your browser
+headerArt: /art/wasm-snake.svg
 ---
 
 I always wanted to play with WebAssembly and Rust ecosystem. Given, that I've seen different startups doing some advanced UI/Graphics in browser with the power of wasm, I decided to give it a try in my free time. The hardest part, of course, was to think of the project. As I didn't come up with something really interesting, then why not to try implementing [Snake game](<https://en.wikipedia.org/wiki/Snake_(video_game_genre)>) and play it within a browser?

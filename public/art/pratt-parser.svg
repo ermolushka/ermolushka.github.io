@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="p-bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0c0814"/>
+      <stop offset="100%" stop-color="#110a1e"/>
+    </linearGradient>
+    <radialGradient id="p-glow" cx="600" cy="140" r="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity=".15"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="p-gf">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <style>
+    .p-token{animation:p-slide 5s ease-in-out infinite}
+    .p-token2{animation:p-slide 5s ease-in-out infinite;animation-delay:.6s}
+    .p-token3{animation:p-slide 5s ease-in-out infinite;animation-delay:1.2s}
+    .p-token4{animation:p-slide 5s ease-in-out infinite;animation-delay:1.8s}
+    .p-token5{animation:p-slide 5s ease-in-out infinite;animation-delay:2.4s}
+    .p-tree{animation:p-grow 4s ease-out infinite}
+    .p-branch{animation:p-draw 3s ease-out infinite}
+    .p-node{animation:p-pop 3s ease-out infinite}
+    .p-lbl{animation:p-breathe 3s ease-in-out infinite}
+    @keyframes p-slide{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
+    @keyframes p-grow{0%,100%{opacity:.3;transform:scaleY(.85)}40%,60%{opacity:1;transform:scaleY(1)}}
+    @keyframes p-draw{0%{stroke-dashoffset:60}50%,100%{stroke-dashoffset:0}}
+    @keyframes p-pop{0%,100%{transform:scale(.8);opacity:.3}40%,60%{transform:scale(1);opacity:1}}
+    @keyframes p-breathe{0%,100%{opacity:.4}50%{opacity:.8}}
+  </style>
+
+  <rect width="1200" height="380" fill="url(#p-bg)"/>
+
+  <!-- grid -->
+  <g opacity=".025" stroke="#a78bfa" stroke-width=".5">
+    <line x1="0" y1="95" x2="1200" y2="95"/>
+    <line x1="0" y1="190" x2="1200" y2="190"/>
+    <line x1="0" y1="285" x2="1200" y2="285"/>
+    <line x1="240" y1="0" x2="240" y2="380"/>
+    <line x1="480" y1="0" x2="480" y2="380"/>
+    <line x1="720" y1="0" x2="720" y2="380"/>
+    <line x1="960" y1="0" x2="960" y2="380"/>
+  </g>
+
+  <circle cx="600" cy="140" r="200" fill="url(#p-glow)"/>
+
+  <!-- Token stream on the left -->
+  <text x="60" y="52" fill="#a78bfa" font-family="IBM Plex Mono,monospace" font-size="11" opacity=".5">token stream</text>
+  <line x1="60" y1="58" x2="340" y2="58" stroke="#8b5cf6" stroke-width=".5" stroke-opacity=".3" stroke-dasharray="3 5"/>
+
+  <!-- Tokens sliding in -->
+  <g class="p-token">
+    <rect x="60" y="65" width="52" height="26" rx="3" fill="#1e1030" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="86" y="82" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600">1</text>
+    <text x="86" y="60" text-anchor="middle" fill="#8b5cf6" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".5">Num</text>
+  </g>
+  <g class="p-token2">
+    <rect x="122" y="65" width="52" height="26" rx="3" fill="#180d2a" stroke="#f59e0b" stroke-width="1"/>
+    <text x="148" y="82" text-anchor="middle" fill="#fcd34d" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600">+</text>
+    <text x="148" y="60" text-anchor="middle" fill="#f59e0b" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".5">Op</text>
+  </g>
+  <g class="p-token3">
+    <rect x="184" y="65" width="52" height="26" rx="3" fill="#1e1030" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="210" y="82" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600">2</text>
+    <text x="210" y="60" text-anchor="middle" fill="#8b5cf6" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".5">Num</text>
+  </g>
+  <g class="p-token4">
+    <rect x="246" y="65" width="52" height="26" rx="3" fill="#180d2a" stroke="#f59e0b" stroke-width="1"/>
+    <text x="272" y="82" text-anchor="middle" fill="#fcd34d" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600">*</text>
+    <text x="272" y="60" text-anchor="middle" fill="#f59e0b" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".5">Op</text>
+  </g>
+  <g class="p-token5">
+    <rect x="308" y="65" width="52" height="26" rx="3" fill="#1e1030" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="334" y="82" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600">3</text>
+    <text x="334" y="60" text-anchor="middle" fill="#8b5cf6" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".5">Num</text>
+  </g>
+
+  <!-- arrow to parser -->
+  <path d="M 370 78 L 430 78" stroke="#8b5cf6" stroke-width="1.5" stroke-opacity=".5" marker-end="url(#arr)" fill="none"/>
+  <defs>
+    <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L6,3 z" fill="#8b5cf6" opacity=".5"/>
+    </marker>
+  </defs>
+  <text x="400" y="73" text-anchor="middle" fill="#8b5cf6" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".4">parse</text>
+
+  <!-- AST Tree (main visual) -->
+  <g class="p-tree" style="transform-origin:600px 200px">
+    <!-- Root: BinaryOp + -->
+    <g class="p-node">
+      <rect x="540" y="115" width="120" height="36" rx="4" fill="#1a0f2e" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="600" y="130" text-anchor="middle" fill="#fcd34d" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="700">BinaryOp</text>
+      <text x="600" y="145" text-anchor="middle" fill="#f59e0b" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700">+</text>
+    </g>
+
+    <!-- Edges from root -->
+    <line x1="580" y1="151" x2="510" y2="188" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".5" stroke-dasharray="4 3" class="p-branch"/>
+    <line x1="620" y1="151" x2="690" y2="188" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".5" stroke-dasharray="4 3" class="p-branch" style="animation-delay:.3s"/>
+
+    <!-- Left child: Num 1 -->
+    <g class="p-node" style="animation-delay:.2s">
+      <rect x="460" y="190" width="96" height="36" rx="4" fill="#140e24" stroke="#8b5cf6" stroke-width="1.2"/>
+      <text x="508" y="205" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="11">Literal</text>
+      <text x="508" y="220" text-anchor="middle" fill="#a78bfa" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700">1</text>
+    </g>
+
+    <!-- Right child: BinaryOp * -->
+    <g class="p-node" style="animation-delay:.4s">
+      <rect x="648" y="190" width="96" height="36" rx="4" fill="#1a0f2e" stroke="#f59e0b" stroke-width="1.2"/>
+      <text x="696" y="205" text-anchor="middle" fill="#fcd34d" font-family="IBM Plex Mono,monospace" font-size="11">BinaryOp</text>
+      <text x="696" y="220" text-anchor="middle" fill="#f59e0b" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700">*</text>
+    </g>
+
+    <!-- Edges from * node -->
+    <line x1="676" y1="226" x2="640" y2="262" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".4" stroke-dasharray="4 3" class="p-branch" style="animation-delay:.5s"/>
+    <line x1="716" y1="226" x2="752" y2="262" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".4" stroke-dasharray="4 3" class="p-branch" style="animation-delay:.7s"/>
+
+    <!-- * left child: Num 2 -->
+    <g class="p-node" style="animation-delay:.6s">
+      <rect x="600" y="263" width="80" height="32" rx="4" fill="#0e0b1a" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".7"/>
+      <text x="640" y="276" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="10">Literal</text>
+      <text x="640" y="289" text-anchor="middle" fill="#a78bfa" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700">2</text>
+    </g>
+
+    <!-- * right child: Num 3 -->
+    <g class="p-node" style="animation-delay:.8s">
+      <rect x="712" y="263" width="80" height="32" rx="4" fill="#0e0b1a" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".7"/>
+      <text x="752" y="276" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="10">Literal</text>
+      <text x="752" y="289" text-anchor="middle" fill="#a78bfa" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="700">3</text>
+    </g>
+  </g>
+
+  <!-- Right side - binding power legend -->
+  <text x="1060" y="130" fill="#8b5cf6" font-family="IBM Plex Mono,monospace" font-size="11" opacity=".5" class="p-lbl">bp(+) = 10</text>
+  <text x="1060" y="150" fill="#f59e0b" font-family="IBM Plex Mono,monospace" font-size="11" opacity=".5" class="p-lbl" style="animation-delay:.5s">bp(*) = 20</text>
+  <text x="1060" y="180" fill="#6ee7b7" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".35" class="p-lbl" style="animation-delay:1s">nud / led</text>
+  <text x="1060" y="196" fill="#6ee7b7" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".25">precedence</text>
+
+  <!-- expr label -->
+  <text x="600" y="352" text-anchor="middle" fill="#8b5cf6" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".2">1 + 2 * 3  ⟶  AST  ⟶  7</text>
+</svg>

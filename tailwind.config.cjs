@@ -16,6 +16,7 @@ module.exports = {
     // if one breakpoint is not enough for you
     screens: {
       sm: "640px",
+      lg: "1024px",
     },
 
     extend: {
@@ -61,6 +62,7 @@ module.exports = {
       },
       fontFamily: {
         mono: ["IBM Plex Mono", "monospace"],
+        sans: ["Inter", "system-ui", "sans-serif"],
       },
 
       typography: {

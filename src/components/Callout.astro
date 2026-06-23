@@ -1,0 +1,88 @@
+---
+interface Props {
+  type?: "note" | "tip" | "warning" | "info";
+  title?: string;
+}
+
+const { type = "note", title } = Astro.props;
+
+const config = {
+  note:    { icon: "◈", label: "Note" },
+  tip:     { icon: "◆", label: "Tip" },
+  warning: { icon: "▲", label: "Warning" },
+  info:    { icon: "◉", label: "Info" },
+} as const;
+
+const { icon, label } = config[type];
+---
+
+<aside class={`callout callout-${type}`}>
+  <div class="callout-header">
+    <span class="callout-icon" aria-hidden="true">{icon}</span>
+    <span class="callout-label">{title || label}</span>
+  </div>
+  <div class="callout-body">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .callout {
+    border-radius: 0.375rem;
+    padding: 0.9rem 1.1rem;
+    margin: 1.5rem 0;
+    border-left: 3px solid;
+    font-size: 0.9rem;
+  }
+  .callout-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.45rem;
+    font-weight: 600;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .callout-body :global(p) {
+    margin: 0;
+    line-height: 1.65;
+    font-family: "Inter", system-ui, sans-serif;
+  }
+  .callout-body :global(p + p) {
+    margin-top: 0.4rem;
+  }
+
+  .callout-note {
+    background: rgba(59, 91, 219, 0.06);
+    border-color: rgba(59, 91, 219, 0.45);
+  }
+  .callout-note .callout-header {
+    color: rgba(59, 91, 219, 0.9);
+  }
+
+  .callout-tip {
+    background: rgba(5, 150, 105, 0.06);
+    border-color: rgba(5, 150, 105, 0.45);
+  }
+  .callout-tip .callout-header {
+    color: rgba(5, 150, 105, 0.9);
+  }
+
+  .callout-warning {
+    background: rgba(217, 119, 6, 0.06);
+    border-color: rgba(217, 119, 6, 0.45);
+  }
+  .callout-warning .callout-header {
+    color: rgba(217, 119, 6, 0.9);
+  }
+
+  .callout-info {
+    background: rgba(14, 165, 233, 0.06);
+    border-color: rgba(14, 165, 233, 0.45);
+  }
+  .callout-info .callout-header {
+    color: rgba(14, 165, 233, 0.9);
+  }
+</style>

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="k-bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#050b14"/>
+      <stop offset="100%" stop-color="#081220"/>
+    </linearGradient>
+    <filter id="k-gf">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <style>
+    .k-pulse{animation:k-pulse 2s ease-in-out infinite}
+    .k-pulse2{animation:k-pulse 2s ease-in-out infinite;animation-delay:.5s}
+    .k-pulse3{animation:k-pulse 2s ease-in-out infinite;animation-delay:1s}
+    .k-dash{stroke-dasharray:5 4;animation:k-flow 2.5s linear infinite}
+    .k-dash2{stroke-dasharray:5 4;animation:k-flow 2.5s linear infinite;animation-delay:.8s}
+    .k-dash3{stroke-dasharray:5 4;animation:k-flow 2.5s linear infinite;animation-delay:1.6s}
+    .k-breathe{animation:k-breathe 3s ease-in-out infinite}
+    @keyframes k-pulse{0%,100%{opacity:.5}50%{opacity:1}}
+    @keyframes k-flow{from{stroke-dashoffset:18}to{stroke-dashoffset:0}}
+    @keyframes k-breathe{0%,100%{opacity:.3}50%{opacity:.7}}
+  </style>
+
+  <rect width="1200" height="380" fill="url(#k-bg)"/>
+
+  <!-- grid -->
+  <g opacity=".025" stroke="#38bdf8" stroke-width=".5">
+    <line x1="0" y1="95" x2="1200" y2="95"/>
+    <line x1="0" y1="190" x2="1200" y2="190"/>
+    <line x1="0" y1="285" x2="1200" y2="285"/>
+    <line x1="240" y1="0" x2="240" y2="380"/>
+    <line x1="480" y1="0" x2="480" y2="380"/>
+    <line x1="720" y1="0" x2="720" y2="380"/>
+    <line x1="960" y1="0" x2="960" y2="380"/>
+  </g>
+
+  <!-- Central API Server -->
+  <circle cx="600" cy="190" r="50" fill="#050e1a" stroke="#38bdf8" stroke-width="1.5" class="k-pulse"/>
+  <circle cx="600" cy="190" r="48" fill="none" stroke="#38bdf8" stroke-width=".5" stroke-opacity=".25" stroke-dasharray="6 10"/>
+  <text x="600" y="185" text-anchor="middle" fill="#7dd3fc" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600">kube-api</text>
+  <text x="600" y="200" text-anchor="middle" fill="#7dd3fc" font-family="IBM Plex Mono,monospace" font-size="10">server</text>
+  <circle cx="600" cy="190" r="54" fill="none" stroke="#38bdf8" stroke-opacity=".08" stroke-width="8" class="k-pulse"/>
+
+  <!-- etcd (top) -->
+  <rect x="545" y="60" width="110" height="44" rx="4" fill="#04101c" stroke="#2dd4bf" stroke-width="1.2" class="k-pulse2"/>
+  <text x="600" y="78" text-anchor="middle" fill="#5eead4" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600">etcd</text>
+  <text x="600" y="93" text-anchor="middle" fill="#5eead4" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".6">distributed KV</text>
+  <!-- etcd → api -->
+  <line x1="600" y1="104" x2="600" y2="138" stroke="#2dd4bf" stroke-width="1" class="k-dash" stroke-opacity=".5"/>
+
+  <!-- kubelet / node (bottom-left) -->
+  <rect x="340" y="266" width="120" height="44" rx="4" fill="#04101c" stroke="#38bdf8" stroke-width="1" class="k-pulse3"/>
+  <text x="400" y="284" text-anchor="middle" fill="#7dd3fc" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600">kubelet</text>
+  <text x="400" y="299" text-anchor="middle" fill="#7dd3fc" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".6">node agent</text>
+  <line x1="436" y1="266" x2="563" y2="236" stroke="#38bdf8" stroke-width="1" class="k-dash" stroke-opacity=".4"/>
+
+  <!-- scheduler (left) -->
+  <rect x="290" y="168" width="120" height="44" rx="4" fill="#04101c" stroke="#a78bfa" stroke-width="1" class="k-pulse2"/>
+  <text x="350" y="186" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600">scheduler</text>
+  <text x="350" y="201" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".6">pod binding</text>
+  <line x1="410" y1="190" x2="550" y2="190" stroke="#a78bfa" stroke-width="1" class="k-dash2" stroke-opacity=".4"/>
+
+  <!-- controller-manager (bottom-right) -->
+  <rect x="740" y="266" width="130" height="44" rx="4" fill="#04101c" stroke="#f97316" stroke-width="1" class="k-pulse"/>
+  <text x="805" y="284" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="600">controller</text>
+  <text x="805" y="299" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".6">mgr</text>
+  <line x1="765" y1="266" x2="640" y2="238" stroke="#f97316" stroke-width="1" class="k-dash3" stroke-opacity=".4"/>
+
+  <!-- Pods (nodes) - right side -->
+  <rect x="780" y="108" width="86" height="32" rx="3" fill="#04100d" stroke="#4ade80" stroke-width="1" class="k-pulse3"/>
+  <text x="823" y="128" text-anchor="middle" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10">pod:app</text>
+  <line x1="779" y1="124" x2="651" y2="170" stroke="#4ade80" stroke-width=".8" class="k-dash2" stroke-opacity=".3"/>
+
+  <rect x="860" y="158" width="86" height="32" rx="3" fill="#04100d" stroke="#4ade80" stroke-width=".8" class="k-pulse"/>
+  <text x="903" y="178" text-anchor="middle" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10">pod:app</text>
+  <line x1="859" y1="174" x2="651" y2="188" stroke="#4ade80" stroke-width=".8" class="k-dash" stroke-opacity=".25"/>
+
+  <rect x="780" y="208" width="86" height="32" rx="3" fill="#04100d" stroke="#4ade80" stroke-width=".6" class="k-pulse2"/>
+  <text x="823" y="228" text-anchor="middle" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10">pod:db</text>
+  <line x1="779" y1="224" x2="651" y2="202" stroke="#4ade80" stroke-width=".8" class="k-dash3" stroke-opacity=".2"/>
+
+  <!-- Data capture label -->
+  <text x="200" y="340" fill="#38bdf8" font-family="IBM Plex Mono,monospace" font-size="11" opacity=".45" class="k-breathe">eBPF capture</text>
+  <text x="200" y="356" fill="#38bdf8" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".3">network events</text>
+
+  <text x="600" y="358" text-anchor="middle" fill="#38bdf8" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".18">Kubernetes · data capture · observability</text>
+</svg>

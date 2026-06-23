@@ -13,6 +13,7 @@ tags:
   - compiler
   - virtual machine
 description: Pratt Parser intro and examples of implementation for the basic virtual machine
+headerArt: /art/pratt-parser.svg
 ---
 
 While working on my virtual machine, I found out about [Pratt Parsing](https://en.wikipedia.org/wiki/Operator-precedence_parser#Pratt_parsing) technique. Personally, I found it quite interesting and powerful as well kind of easy to implement. 

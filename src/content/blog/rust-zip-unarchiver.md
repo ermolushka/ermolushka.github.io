@@ -11,6 +11,7 @@ tags:
   - zip
   - compression
 description: A quick overview of a ZIP unarchiver tool written in Rust just for fun.
+headerArt: /art/rust-zip.svg
 ---
 
 Recently, I came across the idea of implementing a universal unarchiver written in Rust. Why exactly? Well, because for my projects where I had to unpack various data sources and some of it where `.zip` archives while the other could be `.tar` or `.tar.gz` or whatever else.

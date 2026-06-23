@@ -12,6 +12,7 @@ tags:
   - event loop
   - asynchronous
 description: A brief intro into asyncio internals in Python
+headerArt: /art/asyncio.svg
 ---
 
 Nowadays, I am working mostly with Python, Golang, Rust and TypeScript (with NodeJS). I was thinking that it would be good to have a summary of how async runtimes work in that languages. Primarly, when you switch between it often, not to forget nuances.

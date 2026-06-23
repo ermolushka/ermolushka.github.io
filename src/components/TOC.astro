@@ -1,0 +1,120 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const tocHeadings = headings.filter(h => h.depth >= 2 && h.depth <= 3);
+---
+
+{tocHeadings.length > 0 && (
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-title">Contents</div>
+    <ul class="toc-list">
+      {tocHeadings.map((heading) => (
+        <li class={`toc-item toc-depth-${heading.depth}`}>
+          <a href={`#${heading.slug}`} class="toc-link" data-heading={heading.slug}>
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .toc {
+    font-size: 0.78rem;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  .toc-title {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    opacity: 0.4;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgb(var(--color-border));
+  }
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .toc-item {
+    line-height: 1.35;
+  }
+  .toc-depth-3 {
+    padding-left: 0.85rem;
+  }
+  .toc-link {
+    display: block;
+    padding: 0.22rem 0.5rem;
+    border-radius: 0.2rem;
+    color: rgb(var(--color-text-base));
+    opacity: 0.45;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: opacity 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  .toc-link:hover {
+    opacity: 0.8;
+    border-left-color: rgba(var(--color-accent), 0.5);
+    background: rgba(var(--color-accent), 0.04);
+  }
+  .toc-link.active {
+    opacity: 1;
+    color: rgb(var(--color-accent));
+    border-left-color: rgb(var(--color-accent));
+    background: rgba(var(--color-accent), 0.06);
+  }
+</style>
+
+<script>
+  function initTOC() {
+    const tocLinks = document.querySelectorAll<HTMLAnchorElement>(".toc-link");
+    if (!tocLinks.length) return;
+
+    const articleHeadings = document.querySelectorAll<HTMLHeadingElement>(
+      "article h2, article h3"
+    );
+    if (!articleHeadings.length) return;
+
+    let activeId: string | null = null;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            if (id === activeId) break;
+            activeId = id;
+            tocLinks.forEach(link => link.classList.remove("active"));
+            const activeLink = document.querySelector<HTMLAnchorElement>(
+              `.toc-link[data-heading="${id}"]`
+            );
+            activeLink?.classList.add("active");
+            break;
+          }
+        }
+      },
+      { rootMargin: "-8% 0% -75% 0%", threshold: 0 }
+    );
+
+    articleHeadings.forEach(h => observer.observe(h));
+  }
+
+  initTOC();
+  document.addEventListener("astro:after-swap", initTOC);
+</script>
