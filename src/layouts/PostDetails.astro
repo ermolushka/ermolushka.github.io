@@ -277,7 +277,7 @@ const nextPost =
     margin: 0 auto;
     padding: 0 1.25rem 4rem;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
   }
 
@@ -349,17 +349,19 @@ const nextPost =
 
   /* ── Article ── */
   #article {
+    min-width: 0;
     max-width: 100%;
-    overflow-x: hidden;
   }
   #article img,
   #article svg,
-  #article iframe,
-  #article table {
+  #article video,
+  #article iframe {
     max-width: 100%;
+    height: auto;
   }
   #article table {
     display: block;
+    max-width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
