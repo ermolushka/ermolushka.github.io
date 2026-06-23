@@ -350,6 +350,18 @@ const nextPost =
   /* ── Article ── */
   #article {
     max-width: 100%;
+    overflow-x: hidden;
+  }
+  #article img,
+  #article svg,
+  #article iframe,
+  #article table {
+    max-width: 100%;
+  }
+  #article table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* ── Footer actions ── */

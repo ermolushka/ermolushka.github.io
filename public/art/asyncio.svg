@@ -14,10 +14,9 @@
     </filter>
   </defs>
   <style>
-    /* inner groups rotate around local (0,0) which is the translate origin */
-    .a-o1 { animation: a-spin 10s linear infinite; transform-origin: 0 0; }
-    .a-o2 { animation: a-spin-r 15s linear infinite; transform-origin: 0 0; }
-    .a-o3 { animation: a-spin 22s linear infinite; transform-origin: 0 0; }
+    .a-o1 { animation: a-spin 10s linear infinite; transform-box: fill-box; transform-origin: center; }
+    .a-o2 { animation: a-spin-r 15s linear infinite; transform-box: fill-box; transform-origin: center; }
+    .a-o3 { animation: a-spin 22s linear infinite; transform-box: fill-box; transform-origin: center; }
     .a-pulse { animation: a-pulse 2.8s ease-in-out infinite; }
     .a-lbl  { animation: a-breathe 3s ease-in-out infinite; }
     .a-lbl2 { animation: a-breathe 3s ease-in-out infinite; animation-delay: .7s; }

@@ -115,6 +115,8 @@
   /* ===== Code Blocks & Syntax Highlighting ===== */
   pre:has(code) {
     @apply border border-skin-line;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
   code,
   blockquote {
@@ -122,6 +124,7 @@
   }
   pre > code {
     white-space: pre;
+    display: block;
   }
   html[data-theme="dark"] pre:has(code),
   html[data-theme="dark"] pre:has(code) span {
