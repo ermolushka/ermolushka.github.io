@@ -166,6 +166,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: InferEntrySchema<"blog">
 } & { render(): Render[".md"] };
+"kv-cache-scheduler.md": {
+	id: "kv-cache-scheduler.md";
+  slug: "kv-cache-scheduler";
+  body: string;
+  collection: "blog";
+  data: InferEntrySchema<"blog">
+} & { render(): Render[".md"] };
 "pratt-parser-rust.md": {
 	id: "pratt-parser-rust.md";
   slug: "pratt-parser-compiler-rust";

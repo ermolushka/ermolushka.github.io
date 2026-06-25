@@ -1,0 +1,219 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="k-bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#030a14"/>
+      <stop offset="100%" stop-color="#06101e"/>
+    </linearGradient>
+    <radialGradient id="k-glow" cx="280" cy="168" r="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f46e5" stop-opacity=".13"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="k-gf">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <style>
+    .k-lbl  { animation: k-breathe 2.5s ease-in-out infinite; }
+    .k-scan { animation: k-scan 6s linear infinite; }
+    @keyframes k-breathe { 0%,100%{opacity:.4} 50%{opacity:.8} }
+    @keyframes k-scan { from{transform:translateY(-10px);opacity:0} 15%{opacity:.4} 85%{opacity:.4} to{transform:translateY(390px);opacity:0} }
+
+    /* 10s allocation cycle */
+    @keyframes k-prefix {
+      0%,3%    { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+      7%,84%   { fill:#1e0840; stroke:#7c3aed; stroke-width:1; }
+      90%,100% { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+    }
+    @keyframes k-seqa {
+      0%,15%   { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+      20%,84%  { fill:#0c2244; stroke:#3b82f6; stroke-width:1; }
+      90%,100% { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+    }
+    @keyframes k-seqb {
+      0%,29%   { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+      34%,84%  { fill:#042428; stroke:#0891b2; stroke-width:1; }
+      90%,100% { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+    }
+    @keyframes k-seqc {
+      0%,43%   { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+      48%,62%  { fill:#062008; stroke:#16a34a; stroke-width:1; }
+      64%,74%  { fill:#2d0505; stroke:#ef4444; stroke-width:1.5; }
+      78%,100% { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+    }
+    .k-free { fill:#0a1520; stroke:#172535; stroke-width:.5; }
+
+    /* badge / label fade timings */
+    @keyframes k-fa { 0%,5%{opacity:0} 9%,82%{opacity:.75} 88%,100%{opacity:0} }
+    @keyframes k-fb { 0%,18%{opacity:0} 22%,82%{opacity:.75} 88%,100%{opacity:0} }
+    @keyframes k-fc { 0%,32%{opacity:0} 36%,60%{opacity:.75} 66%,100%{opacity:0} }
+    @keyframes k-lru { 0%,62%{opacity:0} 66%,74%{opacity:1} 78%,100%{opacity:0} }
+    @keyframes k-hit { 0%,18%{opacity:.15} 24%,100%{opacity:.85} }
+    @keyframes k-evst { 0%,65%{opacity:.15} 70%,100%{opacity:.85} }
+    @keyframes k-util { 0%,6%{width:0} 14%{width:30px} 22%{width:66px} 36%{width:100px} 50%{width:136px} 62%{width:136px} 72%{width:116px} 84%,90%{width:116px} 96%,100%{width:0} }
+
+    .k-fa  { animation: k-fa   10s ease-in-out infinite; }
+    .k-fb  { animation: k-fb   10s ease-in-out infinite; }
+    .k-fc  { animation: k-fc   10s ease-in-out infinite; }
+    .k-lru { animation: k-lru  10s ease-in-out infinite; }
+    .k-hit { animation: k-hit  10s ease-in-out infinite; }
+    .k-evst{ animation: k-evst 10s ease-in-out infinite; }
+    .k-util{ animation: k-util 10s ease-in-out infinite; }
+
+    .k-bp { animation: k-prefix 10s ease-in-out infinite; }
+    .k-ba { animation: k-seqa   10s ease-in-out infinite; }
+    .k-bb { animation: k-seqb   10s ease-in-out infinite; }
+    .k-bc { animation: k-seqc   10s ease-in-out infinite; }
+  </style>
+
+  <rect width="1200" height="380" fill="url(#k-bg)"/>
+  <circle cx="280" cy="168" r="220" fill="url(#k-glow)"/>
+
+  <g stroke="#4f46e5" stroke-width=".3" opacity=".04">
+    <line x1="0" y1="76" x2="1200" y2="76"/>
+    <line x1="0" y1="152" x2="1200" y2="152"/>
+    <line x1="0" y1="228" x2="1200" y2="228"/>
+    <line x1="0" y1="304" x2="1200" y2="304"/>
+    <line x1="300" y1="0"  x2="300" y2="380"/>
+    <line x1="600" y1="0"  x2="600" y2="380"/>
+    <line x1="900" y1="0"  x2="900" y2="380"/>
+  </g>
+
+  <rect x="0" y="0" width="1200" height="1.5" fill="#818cf8" opacity=".06" class="k-scan"/>
+
+  <text x="600" y="38" text-anchor="middle" fill="#a5b4fc" font-family="IBM Plex Mono,monospace" font-size="12" opacity=".5">KV Cache Block Scheduler · PagedAttention · Rust</text>
+  <text x="38" y="66" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5" class="k-lbl">BLOCK POOL (512 slots)</text>
+
+  <!-- sharing indicator: vertical bar on left connecting rows 0-3 -->
+  <g class="k-fa">
+    <line x1="24" y1="97"  x2="24" y2="241" stroke="#7c3aed" stroke-width=".8" stroke-dasharray="3 4" stroke-opacity=".5"/>
+    <line x1="24" y1="97"  x2="38" y2="97"  stroke="#7c3aed" stroke-width=".8" stroke-opacity=".55"/>
+    <line x1="24" y1="145" x2="38" y2="145" stroke="#7c3aed" stroke-width=".6" stroke-opacity=".35"/>
+    <line x1="24" y1="193" x2="38" y2="193" stroke="#7c3aed" stroke-width=".6" stroke-opacity=".35"/>
+    <line x1="24" y1="241" x2="38" y2="241" stroke="#7c3aed" stroke-width=".6" stroke-opacity=".35"/>
+    <circle cx="24" cy="97" r="3" fill="#7c3aed" opacity=".65"/>
+  </g>
+
+  <!-- BLOCK GRID: 8 cols × 4 rows, block 52×34, step 62×48 -->
+  <!-- cols x: 38,100,162,224,286,348,410,472  rows y: 80,128,176,224 -->
+
+  <!-- row 0: prefix/shared (purple) -->
+  <rect class="k-bp" x="38"  y="80" width="52" height="34" rx="3" style="animation-delay:0s"/>
+  <rect class="k-bp" x="100" y="80" width="52" height="34" rx="3" style="animation-delay:.12s"/>
+  <rect class="k-bp" x="162" y="80" width="52" height="34" rx="3" style="animation-delay:.24s"/>
+  <rect class="k-bp" x="224" y="80" width="52" height="34" rx="3" style="animation-delay:.36s"/>
+  <rect class="k-bp" x="286" y="80" width="52" height="34" rx="3" style="animation-delay:.48s"/>
+  <rect class="k-bp" x="348" y="80" width="52" height="34" rx="3" style="animation-delay:.60s"/>
+  <rect class="k-bp" x="410" y="80" width="52" height="34" rx="3" style="animation-delay:.72s"/>
+  <rect class="k-bp" x="472" y="80" width="52" height="34" rx="3" style="animation-delay:.84s"/>
+
+  <!-- block id labels row 0 -->
+  <text class="k-fa" x="64"  y="101" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9">blk0</text>
+  <text class="k-fa" x="126" y="101" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" style="animation-delay:.12s">blk1</text>
+  <text class="k-fa" x="188" y="101" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" style="animation-delay:.24s">blk2</text>
+  <text class="k-fa" x="250" y="101" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" style="animation-delay:.36s">blk3</text>
+  <text class="k-fa" x="312" y="101" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" style="animation-delay:.48s">blk4</text>
+  <text class="k-fa" x="374" y="101" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" style="animation-delay:.60s">blk5</text>
+  <text class="k-fa" x="436" y="101" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" style="animation-delay:.72s">blk6</text>
+  <text class="k-fa" x="498" y="101" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" style="animation-delay:.84s">blk7</text>
+
+  <!-- row 1: seq_a (blue) -->
+  <rect class="k-ba" x="38"  y="128" width="52" height="34" rx="3" style="animation-delay:0s"/>
+  <rect class="k-ba" x="100" y="128" width="52" height="34" rx="3" style="animation-delay:.12s"/>
+  <rect class="k-ba" x="162" y="128" width="52" height="34" rx="3" style="animation-delay:.24s"/>
+  <rect class="k-ba" x="224" y="128" width="52" height="34" rx="3" style="animation-delay:.36s"/>
+  <rect class="k-ba" x="286" y="128" width="52" height="34" rx="3" style="animation-delay:.48s"/>
+  <rect class="k-ba" x="348" y="128" width="52" height="34" rx="3" style="animation-delay:.60s"/>
+  <rect class="k-ba" x="410" y="128" width="52" height="34" rx="3" style="animation-delay:.72s"/>
+  <rect class="k-ba" x="472" y="128" width="52" height="34" rx="3" style="animation-delay:.84s"/>
+
+  <!-- row 2: seq_b (cyan) -->
+  <rect class="k-bb" x="38"  y="176" width="52" height="34" rx="3" style="animation-delay:0s"/>
+  <rect class="k-bb" x="100" y="176" width="52" height="34" rx="3" style="animation-delay:.12s"/>
+  <rect class="k-bb" x="162" y="176" width="52" height="34" rx="3" style="animation-delay:.24s"/>
+  <rect class="k-bb" x="224" y="176" width="52" height="34" rx="3" style="animation-delay:.36s"/>
+  <rect class="k-bb" x="286" y="176" width="52" height="34" rx="3" style="animation-delay:.48s"/>
+  <rect class="k-bb" x="348" y="176" width="52" height="34" rx="3" style="animation-delay:.60s"/>
+  <rect class="k-bb" x="410" y="176" width="52" height="34" rx="3" style="animation-delay:.72s"/>
+  <rect class="k-bb" x="472" y="176" width="52" height="34" rx="3" style="animation-delay:.84s"/>
+
+  <!-- row 3: seq_c (5 blocks, green → red eviction) + 3 free -->
+  <rect class="k-bc" x="38"  y="224" width="52" height="34" rx="3" style="animation-delay:0s"/>
+  <rect class="k-bc" x="100" y="224" width="52" height="34" rx="3" style="animation-delay:.12s"/>
+  <rect class="k-bc" x="162" y="224" width="52" height="34" rx="3" style="animation-delay:.24s"/>
+  <rect class="k-bc" x="224" y="224" width="52" height="34" rx="3" style="animation-delay:.36s"/>
+  <rect class="k-bc" x="286" y="224" width="52" height="34" rx="3" style="animation-delay:.48s"/>
+  <rect class="k-free" x="348" y="224" width="52" height="34" rx="3"/>
+  <rect class="k-free" x="410" y="224" width="52" height="34" rx="3"/>
+  <rect class="k-free" x="472" y="224" width="52" height="34" rx="3"/>
+
+  <!-- row labels (right of grid) -->
+  <text x="542" y="101" fill="#a78bfa" font-family="IBM Plex Mono,monospace" font-size="10" class="k-fa">← prefix cache  (ref=3)</text>
+  <text x="542" y="149" fill="#60a5fa" font-family="IBM Plex Mono,monospace" font-size="10" class="k-fb">← seq_a  private</text>
+  <text x="542" y="197" fill="#22d3ee" font-family="IBM Plex Mono,monospace" font-size="10" class="k-fb" style="animation-delay:1s">← seq_b  private</text>
+  <text x="542" y="245" fill="#4ade80" font-family="IBM Plex Mono,monospace" font-size="10" class="k-fc">← seq_c  private</text>
+
+  <!-- LRU eviction annotation -->
+  <g class="k-lru">
+    <path d="M 38 266 L 38 272 L 348 272 L 348 266" fill="none" stroke="#ef4444" stroke-width=".8" stroke-opacity=".65"/>
+    <text x="542" y="262" fill="#ef4444" font-family="IBM Plex Mono,monospace" font-size="9">  ↑ LRU victim — preempting!</text>
+  </g>
+
+  <!-- divider -->
+  <line x1="768" y1="68" x2="768" y2="300" stroke="#4f46e5" stroke-width=".5" stroke-opacity=".2"/>
+
+  <!-- METRICS PANEL -->
+  <text x="880" y="62" text-anchor="middle" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".45" class="k-lbl">METRICS</text>
+
+  <text x="788" y="106" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5">prefix hit rate</text>
+  <text x="788" y="138" fill="#a5b4fc" font-family="IBM Plex Mono,monospace" font-size="28" font-weight="600" class="k-hit" filter="url(#k-gf)">69.9%</text>
+  <text x="788" y="155" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".3">tokens served from cache</text>
+
+  <line x1="788" y1="168" x2="968" y2="168" stroke="#4f46e5" stroke-width=".4" stroke-opacity=".3"/>
+
+  <text x="788" y="190" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5">LRU evictions</text>
+  <text x="788" y="218" fill="#f87171" font-family="IBM Plex Mono,monospace" font-size="26" font-weight="600" class="k-evst" filter="url(#k-gf)">4</text>
+
+  <line x1="788" y1="234" x2="968" y2="234" stroke="#4f46e5" stroke-width=".4" stroke-opacity=".3"/>
+
+  <text x="788" y="254" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5">pool utilization</text>
+  <rect x="788" y="262" width="160" height="11" rx="2" fill="#0c1828"/>
+  <rect x="788" y="262" height="11" rx="2" fill="#3b82f6" opacity=".7" class="k-util"/>
+  <text x="788" y="289" fill="#60a5fa" font-family="IBM Plex Mono,monospace" font-size="10" class="k-hit">29 / 32 active</text>
+
+  <!-- RIGHT PANEL: radix trie sketch -->
+  <line x1="990" y1="68" x2="990" y2="300" stroke="#4f46e5" stroke-width=".5" stroke-opacity=".2"/>
+
+  <text x="1090" y="62" text-anchor="middle" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".45" class="k-lbl">PREFIX CACHE</text>
+  <text x="1090" y="79" text-anchor="middle" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".3">radix trie</text>
+
+  <!-- trie root -->
+  <circle cx="1090" cy="102" r="6" fill="none" stroke="#4f46e5" stroke-width="1" opacity=".5" class="k-lbl"/>
+  <text x="1090" y="106" text-anchor="middle" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".4">∅</text>
+
+  <!-- trie level 1: system prompt prefix node -->
+  <line x1="1090" y1="108" x2="1090" y2="138" stroke="#7c3aed" stroke-width=".8" stroke-opacity=".4" class="k-fa"/>
+  <rect x="1048" y="138" width="84" height="22" rx="3" fill="#1e0840" stroke="#7c3aed" stroke-width=".8" stroke-opacity=".6" class="k-fa"/>
+  <text x="1090" y="153" text-anchor="middle" fill="#c4b5fd" font-family="IBM Plex Mono,monospace" font-size="9" class="k-fa">sys_prompt[0..8]</text>
+
+  <!-- trie level 2 branches: three sequences -->
+  <line x1="1060" y1="160" x2="1020" y2="188" stroke="#3b82f6" stroke-width=".7" stroke-opacity=".4" stroke-dasharray="3 3" class="k-fb"/>
+  <line x1="1090" y1="160" x2="1090" y2="188" stroke="#0891b2" stroke-width=".7" stroke-opacity=".4" stroke-dasharray="3 3" class="k-fb" style="animation-delay:.5s"/>
+  <line x1="1120" y1="160" x2="1155" y2="188" stroke="#16a34a" stroke-width=".7" stroke-opacity=".4" stroke-dasharray="3 3" class="k-fc"/>
+
+  <rect x="998"  y="188" width="44" height="20" rx="2" fill="#0c2244" stroke="#3b82f6" stroke-width=".8" class="k-fb"/>
+  <text x="1020" y="202" text-anchor="middle" fill="#93c5fd" font-family="IBM Plex Mono,monospace" font-size="8" class="k-fb">seq_a</text>
+
+  <rect x="1068" y="188" width="44" height="20" rx="2" fill="#042428" stroke="#0891b2" stroke-width=".8" class="k-fb" style="animation-delay:.5s"/>
+  <text x="1090" y="202" text-anchor="middle" fill="#67e8f9" font-family="IBM Plex Mono,monospace" font-size="8" class="k-fb" style="animation-delay:.5s">seq_b</text>
+
+  <rect x="1133" y="188" width="44" height="20" rx="2" fill="#062008" stroke="#16a34a" stroke-width=".8" class="k-fc"/>
+  <text x="1155" y="202" text-anchor="middle" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="8" class="k-fc">seq_c</text>
+
+  <!-- block_size label -->
+  <text x="1090" y="242" text-anchor="middle" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".45" class="k-lbl">block_size = 16 tok</text>
+  <text x="1090" y="260" text-anchor="middle" fill="#818cf8" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".28">copy-on-write enabled</text>
+
+  <!-- bottom -->
+  <text x="600" y="350" text-anchor="middle" fill="#4f46e5" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".18">kv-cache-scheduler · Rust · github.com/ermolushka</text>
+</svg>
