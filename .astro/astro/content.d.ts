@@ -173,6 +173,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: InferEntrySchema<"blog">
 } & { render(): Render[".md"] };
+"multi-node-vllm.md": {
+	id: "multi-node-vllm.md";
+  slug: "multi-node-vllm";
+  body: string;
+  collection: "blog";
+  data: InferEntrySchema<"blog">
+} & { render(): Render[".md"] };
 "pratt-parser-rust.md": {
 	id: "pratt-parser-rust.md";
   slug: "pratt-parser-compiler-rust";
