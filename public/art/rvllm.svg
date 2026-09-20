@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="r-bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#120600"/>
+      <stop offset="100%" stop-color="#1c0a00"/>
+    </linearGradient>
+    <radialGradient id="r-glow" cx="600" cy="150" r="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f97316" stop-opacity=".12"/>
+      <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="r-gf">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <style>
+    .r-lbl { animation: r-breathe 2.6s ease-in-out infinite; }
+    @keyframes r-breathe { 0%,100%{opacity:.45} 50%{opacity:.85} }
+
+    /* pipeline stage highlight, 8s loop, one stage lights up at a time */
+    @keyframes r-s1 { 0%,4%{opacity:.25} 8%,17%{opacity:1} 21%,100%{opacity:.25} }
+    @keyframes r-s2 { 0%,17%{opacity:.25} 21%,30%{opacity:1} 34%,100%{opacity:.25} }
+    @keyframes r-s3 { 0%,34%{opacity:.25} 38%,55%{opacity:1} 59%,100%{opacity:.25} }
+    @keyframes r-s4 { 0%,59%{opacity:.25} 63%,72%{opacity:1} 76%,100%{opacity:.25} }
+    @keyframes r-s5 { 0%,76%{opacity:.25} 80%,96%{opacity:1} 100%{opacity:.25} }
+    .r-st1{ animation:r-s1 8s linear infinite; }
+    .r-st2{ animation:r-s2 8s linear infinite; }
+    .r-st3{ animation:r-s3 8s linear infinite; }
+    .r-st4{ animation:r-s4 8s linear infinite; }
+    .r-st5{ animation:r-s5 8s linear infinite; }
+
+    /* token dot travels left to right along the pipeline */
+    @keyframes r-dot {
+      0%   { offset-distance: 0%; opacity: 0; }
+      3%   { opacity: 1; }
+      94%  { opacity: 1; }
+      98%,100% { offset-distance: 100%; opacity: 0; }
+    }
+    .r-dot { offset-path: path("M 92 190 L 1090 190"); animation: r-dot 8s linear infinite; }
+
+    /* batch rows appearing/leaving to suggest continuous batching */
+    @keyframes r-rowa { 0%,4%{opacity:0} 8%,60%{opacity:1} 66%,100%{opacity:0} }
+    @keyframes r-rowb { 0%,14%{opacity:0} 18%,74%{opacity:1} 80%,100%{opacity:0} }
+    @keyframes r-rowc { 0%,26%{opacity:0} 30%,86%{opacity:1} 92%,100%{opacity:0} }
+    .r-rowa{ animation:r-rowa 8s linear infinite; }
+    .r-rowb{ animation:r-rowb 8s linear infinite; }
+    .r-rowc{ animation:r-rowc 8s linear infinite; }
+  </style>
+
+  <rect width="1200" height="380" fill="url(#r-bg)"/>
+  <rect width="1200" height="380" fill="url(#r-glow)"/>
+
+  <g stroke="#f97316" stroke-width=".3" opacity=".05">
+    <line x1="0" y1="90"  x2="1200" y2="90"/>
+    <line x1="0" y1="180" x2="1200" y2="180"/>
+    <line x1="0" y1="270" x2="1200" y2="270"/>
+    <line x1="300" y1="0" x2="300" y2="380"/>
+    <line x1="600" y1="0" x2="600" y2="380"/>
+    <line x1="900" y1="0" x2="900" y2="380"/>
+  </g>
+
+  <text x="600" y="40" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="12" opacity=".55">rvllm · SmolLM2-360M · continuous batching</text>
+
+  <!-- PIPELINE: gguf -> tokenize -> prefill -> decode loop -> sample -->
+  <!-- boxes centered on y=190, 5 boxes across -->
+
+  <g class="r-st1">
+    <rect x="60" y="164" width="120" height="52" rx="4" fill="#1a0d00" stroke="#f97316" stroke-width="1"/>
+    <text x="120" y="187" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="10">gguf</text>
+    <text x="120" y="202" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".6">weights + tok</text>
+  </g>
+
+  <line x1="180" y1="190" x2="252" y2="190" stroke="#f97316" stroke-width=".8" stroke-opacity=".35"/>
+
+  <g class="r-st2">
+    <rect x="252" y="164" width="120" height="52" rx="4" fill="#1a0d00" stroke="#f97316" stroke-width="1"/>
+    <text x="312" y="187" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="10">tokenize</text>
+    <text x="312" y="202" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".6">prompt → ids</text>
+  </g>
+
+  <line x1="372" y1="190" x2="444" y2="190" stroke="#f97316" stroke-width=".8" stroke-opacity=".35"/>
+
+  <g class="r-st3">
+    <rect x="444" y="150" width="180" height="80" rx="4" fill="#1a0d00" stroke="#fb923c" stroke-width="1"/>
+    <text x="534" y="172" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="10">prefill + decode loop</text>
+    <!-- mini block row -->
+    <rect x="460" y="182" width="20" height="14" rx="2" fill="#2a1600" stroke="#fb923c" stroke-width=".7"/>
+    <rect x="484" y="182" width="20" height="14" rx="2" fill="#2a1600" stroke="#fb923c" stroke-width=".7"/>
+    <rect x="508" y="182" width="20" height="14" rx="2" fill="#2a1600" stroke="#fb923c" stroke-width=".7"/>
+    <rect x="532" y="182" width="20" height="14" rx="2" fill="#0e0700" stroke="#4b2a10" stroke-width=".7"/>
+    <rect x="556" y="182" width="20" height="14" rx="2" fill="#0e0700" stroke="#4b2a10" stroke-width=".7"/>
+    <rect x="580" y="182" width="20" height="14" rx="2" fill="#0e0700" stroke="#4b2a10" stroke-width=".7"/>
+    <text x="534" y="212" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".55">paged KV cache</text>
+  </g>
+
+  <line x1="624" y1="190" x2="696" y2="190" stroke="#f97316" stroke-width=".8" stroke-opacity=".35"/>
+
+  <g class="r-st4">
+    <rect x="696" y="164" width="120" height="52" rx="4" fill="#1a0d00" stroke="#f97316" stroke-width="1"/>
+    <text x="756" y="187" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="10">sample</text>
+    <text x="756" y="202" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".6">greedy / top-p</text>
+  </g>
+
+  <line x1="816" y1="190" x2="888" y2="190" stroke="#f97316" stroke-width=".8" stroke-opacity=".35"/>
+
+  <g class="r-st5">
+    <rect x="888" y="164" width="120" height="52" rx="4" fill="#1a0d00" stroke="#f97316" stroke-width="1"/>
+    <text x="948" y="187" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="10">detokenize</text>
+    <text x="948" y="202" text-anchor="middle" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".6">ids → text</text>
+  </g>
+
+  <circle r="4" fill="#fdba74" filter="url(#r-gf)" class="r-dot"/>
+
+  <!-- continuous batching mini-rows under the pipeline -->
+  <text x="60" y="252" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5" class="r-lbl">continuous batching</text>
+  <g class="r-rowa">
+    <rect x="60" y="260" width="200" height="10" rx="2" fill="#2a1600"/>
+    <text x="266" y="269" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".55">req A</text>
+  </g>
+  <g class="r-rowb">
+    <rect x="60" y="278" width="140" height="10" rx="2" fill="#2a1600"/>
+    <text x="206" y="287" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".55">req B</text>
+  </g>
+  <g class="r-rowc">
+    <rect x="60" y="296" width="260" height="10" rx="2" fill="#2a1600"/>
+    <text x="326" y="305" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".55">req C</text>
+  </g>
+
+  <!-- DEVICE TARGETS PANEL -->
+  <line x1="1030" y1="60" x2="1030" y2="320" stroke="#f97316" stroke-width=".5" stroke-opacity=".2"/>
+  <text x="1112" y="62" text-anchor="middle" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5" class="r-lbl">DEVICES</text>
+
+  <rect x="1050" y="80" width="124" height="34" rx="4" fill="#1a0d00" stroke="#4ade80" stroke-width="1"/>
+  <circle cx="1064" cy="97" r="4" fill="#4ade80"/>
+  <text x="1078" y="101" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="11">CPU · candle</text>
+
+  <rect x="1050" y="124" width="124" height="34" rx="4" fill="none" stroke="#7a4a1e" stroke-width="1" stroke-dasharray="3 3"/>
+  <circle cx="1064" cy="141" r="4" fill="none" stroke="#7a4a1e" stroke-width="1.2"/>
+  <text x="1078" y="145" fill="#c2894f" font-family="IBM Plex Mono,monospace" font-size="11">CUDA · cudarc</text>
+
+  <rect x="1050" y="168" width="124" height="34" rx="4" fill="none" stroke="#7a4a1e" stroke-width="1" stroke-dasharray="3 3"/>
+  <circle cx="1064" cy="185" r="4" fill="none" stroke="#7a4a1e" stroke-width="1.2"/>
+  <text x="1078" y="189" fill="#c2894f" font-family="IBM Plex Mono,monospace" font-size="11">Metal · metal-rs</text>
+
+  <text x="1112" y="230" text-anchor="middle" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".35">hand-written kernels</text>
+
+  <text x="600" y="352" text-anchor="middle" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".2">rvllm · Rust · github.com/ermolushka</text>
+</svg>
