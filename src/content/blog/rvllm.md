@@ -51,21 +51,19 @@ None of this is unusual, it's the same shape as most small open models right now
 Instead of one big tensor per sequence, the KV cache is a pool of fixed-size blocks managed by kv-cache-scheduler, the crate from my last post. Every forward pass takes explicit `write_positions` (where to store the new K/V) and `read_blocks` (which physical blocks to attend over), both computed from the scheduler's block table:
 
 ```rust
-let logits = model::forward(
-    config,
-    &tokens[skip_tokens..],
-    device,
-    &mut kv_storage,
-    &write_positions,
-    &read_blocks,
-    read_num_tokens,
-    skip_tokens,
-)?;
+let item = BatchItem {
+    tokens: &tokens[skip_tokens..],
+    write_positions: &write_positions,
+    read_blocks: seq.block_table.blocks(),
+    read_num_tokens: seq.block_table.num_tokens(),
+    position_offset: skip_tokens,
+};
+let logits = model.forward_last(&[item], &mut kv_storage)?;
 ```
 
 The `skip_tokens` part is prefix caching in action. Before running the forward pass, the engine checks the prefix cache for a token match and only computes the tokens after the matched prefix, reading the rest straight from already-written blocks. If two prompts share a system prompt prefix, the second one skips recomputing it entirely.
 
-Decoding runs as a loop with three stages each step: admit any requests whose arrival step has been reached, prefill as many waiting requests as there's pool capacity for, then run one batched decode step for everything currently running. All the currently-running sequences share a single `forward_batch` call, each contributing exactly one new token, which is the "continuous" part of continuous batching - sequences join and leave the batch between steps instead of waiting for the whole batch to finish.
+Decoding runs as a loop with three stages each step: admit any requests whose arrival step has been reached, prefill as many waiting requests as there's pool capacity for, then run one batched decode step for everything currently running. All the currently-running sequences share a single `forward` call, each contributing exactly one new token, which is the "continuous" part of continuous batching - sequences join and leave the batch between steps instead of waiting for the whole batch to finish.
 
 ## What's basic about it right now
 
