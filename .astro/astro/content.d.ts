@@ -201,6 +201,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: InferEntrySchema<"blog">
 } & { render(): Render[".md"] };
+"rvllm-cuda.md": {
+	id: "rvllm-cuda.md";
+  slug: "rvllm-cuda";
+  body: string;
+  collection: "blog";
+  data: InferEntrySchema<"blog">
+} & { render(): Render[".md"] };
 "rvllm-memcpy.md": {
 	id: "rvllm-memcpy.md";
   slug: "rvllm-memcpy";
