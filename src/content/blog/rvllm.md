@@ -85,3 +85,5 @@ The plan, roughly:
 3. **After both GPU backends work**, the plan is to rewrite the CPU math itself from scratch too, dropping candle entirely, informed by whatever gets learned writing the CUDA and Metal kernels. The architecture and KV cache design carry over unchanged, only the "do the math" layer gets replaced. Right now that's deliberately vague until the GPU kernel work is actually done.
 
 If you want to see how a paged KV cache actually gets wired into forward passes rather than just simulated, the code is at [github.com/ermolushka/rvllm](https://github.com/ermolushka/rvllm).
+
+*More on rvllm: [Optimization of the Rust LLM engine](/posts/rvllm-memcpy) covers profiling and fixing the CPU path, and [Adding CUDA to my Rust LLM engine](/posts/rvllm-cuda) covers the GPU backend.*

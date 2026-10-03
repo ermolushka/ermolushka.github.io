@@ -169,3 +169,5 @@ Some of these are probably the same kind of mistake as the memcpy one, something
 3. **Metal**, with the same approach as CUDA.
 
 The code is at [github.com/ermolushka/rvllm](https://github.com/ermolushka/rvllm). Everything CUDA is under `src/cuda/`, and the kernels are in `src/cuda/kernels/`, each under 70 lines, so they're a decent place to start reading if you want to see what a Llama layer looks like at the GPU level.
+
+*Earlier posts on rvllm: [rvllm - A Small LLM Inference Engine in Rust](/posts/rvllm) for the engine itself, and [Optimization of the Rust LLM engine](/posts/rvllm-memcpy) for the CPU profiling and fixes.*

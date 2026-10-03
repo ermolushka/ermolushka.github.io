@@ -120,3 +120,5 @@ This isn't a comparison with llama.cpp, and I wouldn't read it as one. I haven't
 If there's a lesson it's the boring one: I should have profiled before touching anything. I'd also check what your tensor library copies before trusting it, because `slice_assign` and `broadcast_matmul` both look cheap and neither is. And keep a checksum of the output around, so every speedup comes with proof that the model still says the same thing.
 
 The GPU work is next, and I'm glad I'll start it from a CPU version that isn't secretly a memcpy benchmark. The code is at [github.com/ermolushka/rvllm](https://github.com/ermolushka/rvllm).
+
+*More on rvllm: [the first post](/posts/rvllm) describes the engine itself, and [Adding CUDA to my Rust LLM engine](/posts/rvllm-cuda) is the GPU follow-up.*
