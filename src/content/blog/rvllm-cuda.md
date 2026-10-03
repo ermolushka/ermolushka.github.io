@@ -1,7 +1,7 @@
 ---
 author: Alexey Ermolaev
 pubDatetime: 2026-10-02T10:00:00Z
-modDatetime: 2026-10-02T10:00:00Z
+modDatetime: 2026-10-03T10:00:00Z
 title: Adding CUDA to my Rust LLM engine
 slug: rvllm-cuda
 featured: true
@@ -161,6 +161,21 @@ Same honesty as before. It took me quite a while to make a basic version work (a
 - **Naive reductions.** My shared memory reductions are the textbook version, not warp shuffles.
 
 Some of these are probably the same kind of mistake as the memcpy one, something that looks cheap and isn't. I just haven't profiled it yet.
+
+**UPD (Oct 3):** I fixed the first item, partly. The weights are now F16 on the GPU instead of F32. Not Q8_0, so it's 2 times fewer bytes, not the 4 I was after, but it was the easy half. Same T4, same file, same benchmark as above:
+
+```
+batch   total tok/s (before -> after)   decode ms/step (before -> after)   first token
+1            96.6 ->  118.7                    9.9 ->  8.2                28 -> 14.5 ms
+4           257.3 ->  374.7                   13.5 ->  9.7                33 -> 15.1 ms
+8           342.1 ->  473.8                   19.2 -> 15.0                34 -> 15.2 ms
+16          505.6 ->  857.2                   23.2 -> 14.8                34 -> 15.3 ms
+32          678.2 -> 1047.3                   30.1 -> 22.9                34 -> 15.4 ms
+```
+
+Total throughput is up 1.2 to 1.7 times, and prefill roughly doubled, from about 4 thousand to about 8.5 thousand tokens per second. The gain is smaller than "half the bytes" suggests, and the first version I wrote was actually slower than F32 (30 ms per step at batch 1). cuBLAS has no matmul for F16 weights and F32 activations, so I narrow the activations to F16 before every matmul, and I allocated a fresh buffer for that each time. That's roughly 200 extra allocations and kernel launches per step. Moving it to one scratch buffer per forward pass, and converting once for the q/k/v and gate/up projections that share an input, brought it back from 30 ms to 8.2 ms.
+
+That also says something about what's left. Reading 0.7 GB of F16 weights on a T4 should take around 2.3 ms, and I'm at 8.2, so most of the step is still overhead and not memory traffic. The allocation item below is next.
 
 ## What's next
 
