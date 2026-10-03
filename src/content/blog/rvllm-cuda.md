@@ -162,20 +162,22 @@ Same honesty as before. It took me quite a while to make a basic version work (a
 
 Some of these are probably the same kind of mistake as the memcpy one, something that looks cheap and isn't. I just haven't profiled it yet.
 
-**UPD (Oct 3):** I fixed the first item, partly. The weights are now F16 on the GPU instead of F32. Not Q8_0, so it's 2 times fewer bytes, not the 4 I was after, but it was the easy half. Same T4, same file, same benchmark as above:
+**UPD (Oct 3):** I fixed the first item, partly, and a few more things on the way. The weights are now F16 on the GPU instead of F32. Not Q8_0, so it's 2 times fewer bytes, not the 4 I was after, but it was the easy half. Same T4, same file, same benchmark as above (I only re-ran batch sizes 1, 4 and 32):
 
 ```
 batch   total tok/s (before -> after)   decode ms/step (before -> after)   first token
-1            96.6 ->  118.7                    9.9 ->  8.2                28 -> 14.5 ms
-4           257.3 ->  374.7                   13.5 ->  9.7                33 -> 15.1 ms
-8           342.1 ->  473.8                   19.2 -> 15.0                34 -> 15.2 ms
-16          505.6 ->  857.2                   23.2 -> 14.8                34 -> 15.3 ms
-32          678.2 -> 1047.3                   30.1 -> 22.9                34 -> 15.4 ms
+1            96.6 ->  150.2                    9.9 ->  6.5                28 -> 13.2 ms
+4           257.3 ->  473.3                   13.5 ->  7.6                33 -> 13.3 ms
+32          678.2 -> 1351.5                   30.1 -> 16.8                34 -> 13.9 ms
 ```
 
-Total throughput is up 1.2 to 1.7 times, and prefill roughly doubled, from about 4 thousand to about 8.5 thousand tokens per second. The gain is smaller than "half the bytes" suggests, and the first version I wrote was actually slower than F32 (30 ms per step at batch 1). cuBLAS has no matmul for F16 weights and F32 activations, so I narrow the activations to F16 before every matmul, and I allocated a fresh buffer for that each time. That's roughly 200 extra allocations and kernel launches per step. Moving it to one scratch buffer per forward pass, and converting once for the q/k/v and gate/up projections that share an input, brought it back from 30 ms to 8.2 ms.
+Total throughput is up 1.5 to 2 times, and prefill went from about 4 thousand to about 9 thousand tokens per second. Getting there took three changes, and the first one made things worse.
 
-That also says something about what's left. Reading 0.7 GB of F16 weights on a T4 should take around 2.3 ms, and I'm at 8.2, so most of the step is still overhead and not memory traffic. The allocation item below is next.
+1. **F16 weights.** cuBLAS has no matmul for F16 weights and F32 activations, so I narrow the activations to F16 before each matmul. My first version allocated a fresh buffer for that every time, about 200 extra allocations and kernel launches per step, and it was slower than F32 (30 ms per step at batch 1). One scratch buffer per forward pass fixed that.
+2. **Reusing buffers.** Every layer used to allocate about 25 fresh buffers. Now they are allocated once per forward pass and shared by all layers.
+3. **Argmax on the GPU.** At batch 32 the CPU spent about 3.5 ms per step copying 6 MB of logits back and scanning them for the best token. For greedy decoding the GPU now does the argmax and only the 32 token ids come back. My first guess was that building a tensor per row was the slow part. It wasn't, it was the scan itself, and moving it to the GPU took the step from 19.3 to 16.8 ms.
+
+I also measured where a decode step goes now. At batch 1 about 4 to 5 ms of the 6.5 ms is the CPU launching kernels, over a thousand of them per step, and the GPU mostly waits for it. That launch cost is the same at every batch size, so it only matters when the batch is small. At batch 32 it's the opposite: the CPU is done early and the GPU needs about 12 ms, far more than the 2.3 ms it should take to read the weights. I haven't found out what's in those 12 ms yet. My guess is the gather that copies the whole K/V context every step, but that's a guess.
 
 ## What's next
 
