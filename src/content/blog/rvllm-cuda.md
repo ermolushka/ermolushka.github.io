@@ -1,7 +1,7 @@
 ---
 author: Alexey Ermolaev
 pubDatetime: 2026-10-02T10:00:00Z
-modDatetime: 2026-10-03T10:00:00Z
+modDatetime: 2026-10-04T10:00:00Z
 title: Adding CUDA to my Rust LLM engine
 slug: rvllm-cuda
 featured: true
@@ -178,6 +178,27 @@ Total throughput is up 1.5 to 2 times, and prefill went from about 4 thousand to
 3. **Argmax on the GPU.** At batch 32 the CPU spent about 3.5 ms per step copying 6 MB of logits back and scanning them for the best token. For greedy decoding the GPU now does the argmax and only the 32 token ids come back. My first guess was that building a tensor per row was the slow part. It wasn't, it was the scan itself, and moving it to the GPU took the step from 19.3 to 16.8 ms.
 
 I also measured where a decode step goes now. At batch 1 about 4 to 5 ms of the 6.5 ms is the CPU launching kernels, over a thousand of them per step, and the GPU mostly waits for it. That launch cost is the same at every batch size, so it only matters when the batch is small. At batch 32 it's the opposite: the CPU is done early and the GPU needs about 12 ms, far more than the 2.3 ms it should take to read the weights. I haven't found out what's in those 12 ms yet. My guess is the gather that copies the whole K/V context every step, but that's a guess.
+
+**UPD (Oct 4):** rvllm now has an API. Until now it was a command line tool that took a few prompts, ran them and exited. That's still there as `rvllm cli --prompt ...`, and without `--prompt` it's a question and answer loop that prints the answer as it is generated. The new part is `rvllm serve`, an OpenAI compatible server (tokio and axum) with `/v1/completions` and `/v1/chat/completions`, streaming included, so any OpenAI client works if you point its base URL at it:
+
+```
+rvllm serve --model SmolLM2-360M.Q8_0.gguf --port 8000
+curl localhost:8000/v1/chat/completions -H 'content-type: application/json' \
+  -d '{"messages": [{"role": "user", "content": "Say hi"}], "max_tokens": 32, "stream": true}'
+```
+
+I mostly built it for the case where two agent sessions use the same endpoint, so the interesting part is what happens when requests arrive together:
+
+- All the model work runs on one engine thread that batches whatever is in flight. A request that arrives while others are generating joins the next decode step, so two clients share the work and don't wait for each other.
+- Only `--max-running` sequences (8 by default) decode together. The rest wait in a FIFO queue until a slot frees up.
+- When running plus queued reaches `--max-queue`, new requests get a 429 with `Retry-After` and don't pile up forever. I tried it with 2 slots, 2 queue places and 6 requests at once: 2 ran together, 2 finished after them, and 2 got an immediate 429.
+- If a client disconnects, the request is dropped and its KV blocks and its place in the queue are freed right away.
+
+To make this possible I had to rewrite the engine loop. It used to take a fixed list of requests and return when all of them were done, and there were two copies of it, one for CPU and one for CUDA. Now there is one engine you can add requests to and step, and CPU and CUDA are just two backends under it. This also made `bench` simpler, as it now has a single path for both devices.
+
+Rewriting it found two bugs that were there the whole time. The first one is a bit embarrassing: the token sampled at the end of prefill was never printed. "The capital of France is" produced `.\n\nParis is the`, and the word "Paris" was just missing. I looked at that output earlier and decided it was the model being weird. The other bug showed up in a test with a tiny KV pool: when a sequence was evicted and later prefilled again, its last token was wrong. The first bug was hiding that one.
+
+Two things I haven't done. The server works on CPU, where I tested it with the real model, but I haven't run it on the GPU yet, only checked that it compiles with the `cuda` feature. And the SmolLM2 model I use is a base model, not a chat one, so the chat endpoint works but the answers are mostly nonsense. It needs an Instruct model for real chat.
 
 ## What's next
 
