@@ -4,7 +4,7 @@ export const SITE: Site = {
   website: "https://ermolushka.github.io/",
   author: "Alex Ermolaev",
   profile: "https://github.com/ermolushka",
-  desc: "Personal blog about tech, low-level, security.",
+  desc: "Alex Ermolaev's personal blog on systems programming, low-level engineering, Rust, LLM inference and security.",
   title: "ermolushka (blog)",
   ogImage: "og-image-terminal.svg",
   lightAndDarkMode: true,

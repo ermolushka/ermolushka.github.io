@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="v-bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#080f0b"/>
+      <stop offset="100%" stop-color="#0a1510"/>
+    </linearGradient>
+    <radialGradient id="v-glow" cx="600" cy="190" r="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity=".12"/>
+      <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="v-gf">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <style>
+    .v-push{animation:v-push 3s ease-in-out infinite}
+    .v-pop{animation:v-pop 3s ease-in-out infinite;animation-delay:1.5s}
+    .v-blink{animation:v-blink 1.2s step-end infinite}
+    .v-scan{animation:v-scan 4s linear infinite}
+    .v-enter{animation:v-fade 1s ease-out forwards}
+    .v-lbl{animation:v-breathe 2.5s ease-in-out infinite}
+    @keyframes v-push{0%,60%,100%{transform:translateY(0);opacity:1}30%{transform:translateY(-34px);opacity:.3}}
+    @keyframes v-pop{0%,40%,100%{transform:translateY(0);opacity:1}70%{transform:translateY(34px);opacity:.2}}
+    @keyframes v-blink{0%,100%{opacity:1}50%{opacity:0}}
+    @keyframes v-scan{from{transform:translateY(-20px);opacity:0}20%{opacity:.6}80%{opacity:.6}to{transform:translateY(400px);opacity:0}}
+    @keyframes v-fade{from{opacity:0}to{opacity:1}}
+    @keyframes v-breathe{0%,100%{opacity:.45}50%{opacity:.8}}
+  </style>
+
+  <rect width="1200" height="380" fill="url(#v-bg)"/>
+
+  <!-- grid -->
+  <g opacity=".025" stroke="#4ade80" stroke-width=".5">
+    <line x1="0" y1="76" x2="1200" y2="76"/>
+    <line x1="0" y1="152" x2="1200" y2="152"/>
+    <line x1="0" y1="228" x2="1200" y2="228"/>
+    <line x1="0" y1="304" x2="1200" y2="304"/>
+    <line x1="200" y1="0" x2="200" y2="380"/>
+    <line x1="400" y1="0" x2="400" y2="380"/>
+    <line x1="600" y1="0" x2="600" y2="380"/>
+    <line x1="800" y1="0" x2="800" y2="380"/>
+    <line x1="1000" y1="0" x2="1000" y2="380"/>
+  </g>
+
+  <!-- scan line -->
+  <rect x="0" y="0" width="1200" height="2" fill="#4ade80" opacity=".08" class="v-scan"/>
+
+  <circle cx="600" cy="190" r="210" fill="url(#v-glow)"/>
+
+  <!-- Stack frame - main visual element -->
+  <!-- SP register indicator -->
+  <text x="445" y="96" text-anchor="end" fill="#22c55e" font-family="IBM Plex Mono,monospace" font-size="11" opacity=".6">SP ──▶</text>
+
+  <!-- Stack blocks -->
+  <!-- Top (new push, animated) -->
+  <g class="v-push" style="animation-delay:0s">
+    <rect x="450" y="72" width="300" height="32" rx="2" fill="none" stroke="#22c55e" stroke-width="1" stroke-opacity=".35" stroke-dasharray="4 4"/>
+    <text x="600" y="92" text-anchor="middle" fill="#22c55e" font-family="IBM Plex Mono,monospace" font-size="11" opacity=".4">··· PUSH ···</text>
+  </g>
+
+  <!-- Frame 0 - top of stack -->
+  <rect x="450" y="106" width="300" height="34" rx="2" fill="#0d1f12" stroke="#22c55e" stroke-width="1.2"/>
+  <text x="470" y="121" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5">0x001C</text>
+  <text x="600" y="128" text-anchor="middle" fill="#4ade80" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="600" filter="url(#v-gf)">42</text>
+  <text x="735" y="121" text-anchor="end" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5">Int</text>
+
+  <!-- Frame 1 -->
+  <rect x="450" y="142" width="300" height="34" rx="2" fill="#0a1a0d" stroke="#22c55e" stroke-width=".8" stroke-opacity=".6"/>
+  <text x="470" y="157" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".4">0x0018</text>
+  <text x="600" y="164" text-anchor="middle" fill="#4ade80" font-family="IBM Plex Mono,monospace" font-size="12">"hello"</text>
+  <text x="735" y="157" text-anchor="end" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".4">Str</text>
+
+  <!-- Frame 2 -->
+  <rect x="450" y="178" width="300" height="34" rx="2" fill="#080f09" stroke="#22c55e" stroke-width=".8" stroke-opacity=".4"/>
+  <text x="470" y="193" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".3">0x0014</text>
+  <text x="600" y="200" text-anchor="middle" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="12">true</text>
+  <text x="735" y="193" text-anchor="end" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".3">Bool</text>
+
+  <!-- Frame 3 -->
+  <rect x="450" y="214" width="300" height="34" rx="2" fill="#060c07" stroke="#22c55e" stroke-width=".8" stroke-opacity=".25"/>
+  <text x="470" y="229" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".2">0x0010</text>
+  <text x="600" y="236" text-anchor="middle" fill="#4a7c5e" font-family="IBM Plex Mono,monospace" font-size="12">0x00a4</text>
+  <text x="735" y="229" text-anchor="end" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".2">Ptr</text>
+
+  <!-- Frame 4 - bottom -->
+  <rect x="450" y="250" width="300" height="34" rx="2" fill="#050a06" stroke="#22c55e" stroke-width=".6" stroke-opacity=".15"/>
+  <text x="600" y="272" text-anchor="middle" fill="#2d4a36" font-family="IBM Plex Mono,monospace" font-size="11">··· frame ···</text>
+
+  <!-- Base -->
+  <rect x="448" y="286" width="304" height="4" rx="1" fill="#22c55e" opacity=".3"/>
+
+  <!-- SP arrow -->
+  <line x1="448" y1="123" x2="430" y2="123" stroke="#22c55e" stroke-width="1" stroke-opacity=".7"/>
+  <circle cx="429" cy="123" r="2.5" fill="#22c55e" opacity=".7"/>
+
+  <!-- PC register on right -->
+  <text x="760" y="128" fill="#fbbf24" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".6">PC: 0x0042</text>
+  <text x="760" y="164" fill="#fbbf24" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".4">op: ADD</text>
+  <text x="760" y="200" fill="#fbbf24" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".3">op: PUSH</text>
+  <text x="760" y="236" fill="#fbbf24" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".2">op: CALL</text>
+
+  <!-- Left side - instruction set labels -->
+  <g class="v-enter" style="opacity:0;animation-delay:.4s">
+    <text x="150" y="128" text-anchor="end" fill="#22c55e" font-family="IBM Plex Mono,monospace" font-size="11" class="v-lbl">PUSH</text>
+    <text x="150" y="164" text-anchor="end" fill="#22c55e" font-family="IBM Plex Mono,monospace" font-size="11" class="v-lbl" style="animation-delay:.4s">POP</text>
+    <text x="150" y="200" text-anchor="end" fill="#22c55e" font-family="IBM Plex Mono,monospace" font-size="11" class="v-lbl" style="animation-delay:.8s">ADD / SUB</text>
+    <text x="150" y="236" text-anchor="end" fill="#22c55e" font-family="IBM Plex Mono,monospace" font-size="11" class="v-lbl" style="animation-delay:1.2s">CALL / RET</text>
+    <!-- connector lines -->
+    <line x1="155" y1="126" x2="448" y2="126" stroke="#22c55e" stroke-width=".4" stroke-opacity=".2" stroke-dasharray="3 5"/>
+    <line x1="155" y1="162" x2="448" y2="162" stroke="#22c55e" stroke-width=".4" stroke-opacity=".15" stroke-dasharray="3 5"/>
+    <line x1="155" y1="198" x2="448" y2="198" stroke="#22c55e" stroke-width=".4" stroke-opacity=".1" stroke-dasharray="3 5"/>
+  </g>
+
+  <!-- Title hint -->
+  <text x="600" y="348" text-anchor="middle" fill="#22c55e" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".18">Elephant VM · stack-based · Rust</text>
+
+  <!-- cursor blink at top -->
+  <text x="600" y="58" text-anchor="middle" fill="#22c55e" font-family="IBM Plex Mono,monospace" font-size="13" class="v-blink">▎</text>
+</svg>

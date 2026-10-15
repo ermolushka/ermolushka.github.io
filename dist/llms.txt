@@ -1,0 +1,26 @@
+# ermolushka (blog)
+
+> Alex Ermolaev's personal blog on systems programming, low-level engineering, Rust, LLM inference and security.
+
+Each post is available as HTML and as raw Markdown (append `.md` to the post URL).
+
+## Posts
+
+- [Adding CUDA to my Rust LLM engine](https://ermolushka.github.io/posts/rvllm-cuda.md): I added a CUDA backend to rvllm with hand written kernels, cuBLAS for matmuls, and a test that checks every step against the CPU path.
+- [Optimization of the Rust LLM engine](https://ermolushka.github.io/posts/rvllm-memcpy.md): rvllm generated 0.9 tokens per second from a 360M model. Profiling it showed almost all the time went to memcpy, not math.
+- [rvllm - A Small LLM Inference Engine in Rust](https://ermolushka.github.io/posts/rvllm.md): A basic local LLM inference engine written from scratch in Rust, running SmolLM2 on CPU with continuous batching and paged KV cache, and where CUDA and Metal support fit in next.
+- [Two Boxes, One Model - Playing With Multi-Node vLLM](https://ermolushka.github.io/posts/multi-node-vllm.md): A small learning experiment splitting an LLM across two GPU boxes with Ray and vLLM - tensor parallel vs pipeline parallel, and why plain ethernet ruins both.
+- [Building a KV Cache Block Scheduler in Rust](https://ermolushka.github.io/posts/kv-cache-scheduler.md): A from-scratch PagedAttention-style KV cache block manager in Rust - reference counting, prefix caching via radix trie, LRU eviction, and copy-on-write for beam search.
+- [Elephant VM - stack-based VM written in Rust](https://ermolushka.github.io/posts/elephant-vm-rust.md): An implementation of a simple stack-based VM written in Rust
+- [Memory Optimization Deep Dive Running 8B Models on a Single 4090 using vLLM](https://ermolushka.github.io/posts/vllm-benchmark-4090.md): An exploration of quantization techniques and memory optimization strategies for running Llama 8B models efficiently on consumer hardware using vLLM
+- [Data capture for ML endpoints](https://ermolushka.github.io/posts/data-capture-ml-endpoints.md): One of the approaches of how how you can add data capture to your ML endpoints
+- [Python asyncio internals](https://ermolushka.github.io/posts/python-asyncio-internals.md): A brief intro into asyncio internals in Python
+- [Pratt Parsing intro for the compiler development](https://ermolushka.github.io/posts/pratt-parser-compiler-rust.md): Pratt Parser intro and examples of implementation for the basic virtual machine
+- [Snake game in Rust + Webassembly](https://ermolushka.github.io/posts/wasm-snake-game-rust.md): Snake game written in Rust and compiled to Webassemly to run in your browser
+- [Implementing ZIP unarchiver in Rust](https://ermolushka.github.io/posts/rust-zip-unarchiver.md): A quick overview of a ZIP unarchiver tool written in Rust just for fun.
+
+## Optional
+
+- [RSS feed](https://ermolushka.github.io/rss.xml)
+- [Sitemap](https://ermolushka.github.io/sitemap-index.xml)
+- [Author on GitHub](https://github.com/ermolushka)

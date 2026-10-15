@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --blue: #4c6ef5;
+    --cyan: #22d3ee;
+    --orange: #f97316;
+    --green: #4ade80;
+    --red: #f87171;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 12px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+  h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: .5rem;
+  }
+
+  /* Diagram layout */
+  .diagram {
+    width: 100%;
+    max-width: 700px;
+    display: grid;
+    grid-template-columns: 1fr 160px 1fr;
+    grid-template-rows: auto auto auto;
+    gap: .75rem;
+    align-items: center;
+  }
+
+  /* Component boxes */
+  .component {
+    border: 1px solid var(--border);
+    border-radius: .375rem;
+    padding: .6rem .8rem;
+    background: var(--surface);
+    cursor: pointer;
+    transition: border-color .2s, background .2s, box-shadow .2s;
+    user-select: none;
+  }
+  .component:hover {
+    border-color: var(--blue);
+    background: #1c2333;
+  }
+  .component.active {
+    box-shadow: 0 0 0 1px currentColor;
+  }
+  .component.active-blue { border-color: var(--blue); box-shadow: 0 0 8px rgba(76,110,245,.25); }
+  .component.active-cyan { border-color: var(--cyan); box-shadow: 0 0 8px rgba(34,211,238,.2); }
+  .component.active-orange { border-color: var(--orange); box-shadow: 0 0 8px rgba(249,115,22,.2); }
+
+  .comp-title {
+    font-weight: 600;
+    font-size: 11px;
+    margin-bottom: .2rem;
+  }
+  .comp-sub {
+    font-size: 9px;
+    opacity: .5;
+    line-height: 1.4;
+  }
+  .comp-items {
+    margin-top: .4rem;
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+  }
+  .comp-item {
+    font-size: 10px;
+    padding: .15rem .3rem;
+    border-radius: .2rem;
+    background: rgba(255,255,255,.04);
+    border-left: 2px solid transparent;
+    transition: all .15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .comp-item.running { border-left-color: var(--green); color: var(--green); background: rgba(74,222,128,.07); }
+  .comp-item.waiting { border-left-color: var(--orange); color: var(--orange); opacity: .7; background: rgba(249,115,22,.05); }
+  .comp-item.done { border-left-color: var(--muted); color: var(--muted); text-decoration: line-through; opacity: .4; }
+
+  /* Center event loop circle */
+  .event-loop {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1.5px solid var(--blue);
+    box-shadow: 0 0 20px rgba(76,110,245,.15);
+    text-align: center;
+    margin: auto;
+    position: relative;
+    animation: loop-spin 4s linear infinite;
+  }
+  .event-loop::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px solid var(--blue);
+    opacity: .15;
+    animation: loop-spin-r 6s linear infinite;
+  }
+  @keyframes loop-spin {
+    0%, 100% { box-shadow: 0 0 20px rgba(76,110,245,.15); }
+    50% { box-shadow: 0 0 30px rgba(76,110,245,.3); }
+  }
+  @keyframes loop-spin-r {
+    from { transform: rotate(0); }
+    to { transform: rotate(-360deg); }
+  }
+  .el-label { font-size: 11px; font-weight: 700; color: var(--blue); }
+  .el-tick {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: .2rem;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+  }
+  .el-tick-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: blink .8s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Step counter */
+  .el-step {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    margin-top: .4rem;
+  }
+  .el-step-label { font-size: 8px; color: var(--muted); }
+
+  /* Arrows (connectors) drawn with CSS borders) */
+  .arrows-left { grid-column: 1; grid-row: 1/4; display: flex; flex-direction: column; justify-content: space-around; align-items: flex-end; gap: .5rem; }
+  .arrows-right { grid-column: 3; grid-row: 1/4; display: flex; flex-direction: column; justify-content: space-around; align-items: flex-start; gap: .5rem; }
+
+  /* Bottom info panel */
+  .info-panel {
+    width: 100%;
+    max-width: 700px;
+    border: 1px solid var(--border);
+    border-radius: .375rem;
+    padding: .8rem 1rem;
+    background: var(--surface);
+    min-height: 80px;
+    transition: border-color .3s;
+  }
+  .info-panel.blue { border-color: var(--blue); }
+  .info-panel.cyan { border-color: var(--cyan); }
+  .info-panel.orange { border-color: var(--orange); }
+
+  .info-title {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: .4rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  .info-icon { font-size: 14px; }
+  .info-body { font-size: 10px; color: var(--muted); line-height: 1.7; }
+  .info-code {
+    display: inline-block;
+    background: rgba(255,255,255,.06);
+    padding: .1em .4em;
+    border-radius: .2rem;
+    color: var(--text);
+    font-size: .95em;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+  }
+  button {
+    padding: .4rem .9rem;
+    font-family: inherit;
+    font-size: 11px;
+    border-radius: .25rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  button:hover { border-color: var(--blue); background: #1c2333; }
+  button.primary { border-color: var(--blue); color: var(--blue); }
+  .step-info { font-size: 10px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h3>asyncio event loop · click a component to learn more</h3>
+
+<div class="diagram">
+  <!-- Left column -->
+  <div class="arrows-left">
+    <div class="component active-blue" id="comp-ready" onclick="select('ready')">
+      <div class="comp-title" style="color:var(--blue)">ready_callbacks</div>
+      <div class="comp-sub">deque · FIFO</div>
+      <div class="comp-items" id="ready-items">
+        <div class="comp-item running">coro_a.send()</div>
+        <div class="comp-item waiting">coro_b.send()</div>
+        <div class="comp-item waiting">on_connect()</div>
+      </div>
+    </div>
+
+    <div class="component" id="comp-timer" onclick="select('timer')">
+      <div class="comp-title" style="color:var(--orange)">_scheduled</div>
+      <div class="comp-sub">min-heap · by deadline</div>
+      <div class="comp-items">
+        <div class="comp-item waiting">sleep(0.1) t=+0.1s</div>
+        <div class="comp-item waiting">sleep(1.0) t=+1.0s</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center: event loop circle -->
+  <div class="event-loop" id="el-center" onclick="select('center')">
+    <div class="el-label">event<br/>loop</div>
+    <div class="el-tick"><span class="el-tick-dot"></span><span>running</span></div>
+    <div class="el-step" id="tick-count">0</div>
+    <div class="el-step-label">ticks</div>
+  </div>
+
+  <!-- Right column -->
+  <div class="arrows-right">
+    <div class="component" id="comp-io" onclick="select('io')">
+      <div class="comp-title" style="color:var(--cyan)">I/O selector</div>
+      <div class="comp-sub">epoll / kqueue</div>
+      <div class="comp-items">
+        <div class="comp-item waiting">fd=7 READABLE</div>
+        <div class="comp-item waiting">fd=12 WRITABLE</div>
+      </div>
+    </div>
+
+    <div class="component" id="comp-exc" onclick="select('exc')">
+      <div class="comp-title" style="color:var(--red)">exceptions</div>
+      <div class="comp-sub">per-task context</div>
+      <div class="comp-items">
+        <div class="comp-item done">CancelledError</div>
+        <div class="comp-item waiting">TimeoutError</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="info-panel" id="info-panel">
+  <div class="info-title">
+    <span class="info-icon">◈</span>
+    <span id="info-title-text">asyncio event loop</span>
+  </div>
+  <div class="info-body" id="info-body">
+    Click a component above to see how it fits into the event loop. The loop runs one iteration per <span class="info-code">_run_once()</span> call:
+    drains the ready queue → polls I/O → moves expired timers to ready.
+  </div>
+</div>
+
+<div class="controls">
+  <button class="primary" onclick="step()">▶ step loop</button>
+  <button onclick="resetSim()">↺ reset</button>
+  <span class="step-info" id="step-info">iteration 0 · ready: 3 · sleeping: 2</span>
+</div>
+
+<script>
+  const INFO = {
+    ready: {
+      title: 'ready_callbacks deque',
+      cls: 'blue',
+      body: 'A <span class="info-code">collections.deque</span> of <span class="info-code">(callback, args)</span> pairs. Each loop iteration drains this entirely — running every callback once — before proceeding to I/O. This is why CPU-bound code blocks the event loop: one long callback starves everything else.',
+    },
+    timer: {
+      title: '_scheduled heap',
+      cls: 'orange',
+      body: 'A min-heap (<span class="info-code">heapq</span>) sorted by absolute deadline. Each <span class="info-code">asyncio.sleep(n)</span> pushes a <span class="info-code">TimerHandle</span> here. At the top of every loop iteration, expired handles are moved to the ready queue.',
+    },
+    io: {
+      title: 'I/O selector (epoll / kqueue)',
+      cls: 'cyan',
+      body: '<span class="info-code">selectors.DefaultSelector</span> wraps the OS-level I/O poller. The loop calls <span class="info-code">select(timeout)</span> — where <em>timeout</em> is the time until the next timer — and gets back a list of ready file descriptors. Their registered callbacks are moved to the ready queue.',
+    },
+    exc: {
+      title: 'exception handling',
+      cls: 'blue',
+      body: 'Each <span class="info-code">Task</span> catches exceptions from <span class="info-code">coro.send()</span>/<span class="info-code">coro.throw()</span>. <span class="info-code">CancelledError</span> is how <span class="info-code">task.cancel()</span> works: it throws into the coroutine at the next yield point. <span class="info-code">asyncio.timeout()</span> uses a cancel scope to inject <span class="info-code">TimeoutError</span>.',
+    },
+    center: {
+      title: 'one loop iteration: _run_once()',
+      cls: 'blue',
+      body: '1. Move expired <span class="info-code">_scheduled</span> timers → ready queue.<br/>2. Drain the entire ready queue (run all callbacks).<br/>3. Call <span class="info-code">selector.select(timeout)</span>.<br/>4. For each ready fd, call its registered callback → back to step 1.',
+    },
+  };
+
+  let selected = null;
+  let ticks = 0;
+  let readyCount = 3;
+  let sleepCount = 2;
+
+  function select(id) {
+    document.querySelectorAll('.component').forEach(el => {
+      el.classList.remove('active-blue','active-cyan','active-orange');
+    });
+    const panel = document.getElementById('info-panel');
+    panel.className = 'info-panel';
+    selected = id;
+    const info = INFO[id];
+    if (!info) return;
+    document.getElementById('info-title-text').textContent = info.title;
+    document.getElementById('info-body').innerHTML = info.body;
+    panel.classList.add(info.cls);
+    const compMap = { ready: 'comp-ready', timer: 'comp-timer', io: 'comp-io', exc: 'comp-exc' };
+    const clsMap = { blue: 'active-blue', cyan: 'active-cyan', orange: 'active-orange' };
+    if (compMap[id]) {
+      document.getElementById(compMap[id]).classList.add(clsMap[info.cls] || 'active-blue');
+    }
+  }
+
+  function step() {
+    ticks++;
+    document.getElementById('tick-count').textContent = ticks;
+    // Simulate: move one waiting item to running
+    const items = document.querySelectorAll('.comp-item.waiting');
+    if (items.length > 0) {
+      const first = items[0];
+      first.classList.remove('waiting');
+      first.classList.add('running');
+      setTimeout(() => {
+        first.classList.remove('running');
+        first.classList.add('done');
+        readyCount = Math.max(0, readyCount - 1);
+        updateStepInfo();
+      }, 600);
+    }
+    if (ticks % 3 === 0 && sleepCount > 0) {
+      sleepCount--;
+      readyCount++;
+    }
+    updateStepInfo();
+  }
+
+  function updateStepInfo() {
+    document.getElementById('step-info').textContent =
+      `iteration ${ticks} · ready: ${readyCount} · sleeping: ${sleepCount}`;
+  }
+
+  function resetSim() {
+    ticks = 0; readyCount = 3; sleepCount = 2;
+    document.getElementById('tick-count').textContent = '0';
+    document.querySelectorAll('.comp-item').forEach(el => {
+      el.className = 'comp-item waiting';
+    });
+    const items = document.querySelectorAll('.comp-item');
+    if (items[0]) { items[0].classList.add('running'); items[0].classList.remove('waiting'); }
+    updateStepInfo();
+    select(null);
+    document.getElementById('info-panel').className = 'info-panel';
+    document.getElementById('info-title-text').textContent = 'asyncio event loop';
+    document.getElementById('info-body').innerHTML = 'Click a component above to see how it fits into the event loop. The loop runs one iteration per <span class="info-code">_run_once()</span> call: drains the ready queue → polls I/O → moves expired timers to ready.';
+    document.querySelectorAll('.component').forEach(el => el.classList.remove('active-blue','active-cyan','active-orange'));
+  }
+
+  // Tick counter auto-increment
+  setInterval(() => {
+    ticks++;
+    document.getElementById('tick-count').textContent = ticks;
+  }, 800);
+</script>
+</body>
+</html>

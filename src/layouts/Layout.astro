@@ -34,27 +34,42 @@ const socialImageURL = new URL(
   Astro.url.origin,
 ).href;
 
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  headline: `${title}`,
-  image: `${socialImageURL}`,
-  datePublished: `${pubDatetime?.toISOString()}`,
-  ...(modDatetime && { dateModified: modDatetime.toISOString() }),
-  author: [
-    {
-      "@type": "Person",
-      name: `${author}`,
-      url: `${profile}`,
-    },
-  ],
-};
+const isPost = !!pubDatetime;
+const structuredData = isPost
+  ? {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: `${title}`,
+      description,
+      image: `${socialImageURL}`,
+      url: canonicalURL,
+      datePublished: pubDatetime.toISOString(),
+      ...(modDatetime && { dateModified: modDatetime.toISOString() }),
+      author: [{ "@type": "Person", name: `${author}`, url: `${profile}` }],
+    }
+  : {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          name: SITE.title,
+          url: SITE.website,
+          description: SITE.desc,
+        },
+        {
+          "@type": "Person",
+          name: SITE.author,
+          url: SITE.website,
+          sameAs: [SITE.profile],
+        },
+      ],
+    };
 ---
 
 <!doctype html>
 <html
-  lang=`${LOCALE.lang ?? "en"}`
-  class={`${scrollSmooth && "scroll-smooth"}`}
+  lang={LOCALE.lang || "en"}
+  class={scrollSmooth ? "scroll-smooth" : undefined}
 >
   <head>
     <!-- Google tag (gtag.js) -->
@@ -83,6 +98,13 @@ const structuredData = {
     <meta name="description" content={description} />
     <meta name="author" content={author} />
     <link rel="sitemap" href="/sitemap-index.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={SITE.title}
+      href="/rss.xml"
+    />
+    <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:title" content={title} />

@@ -1,0 +1,500 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"> <head><!-- Google tag (gtag.js) --><script type="text/partytown" async src="https://www.googletagmanager.com/gtag/js?id=G-8MLZNVYK1Z"></script><script type="text/partytown">
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-8MLZNVYK1Z");
+    </script><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://ermolushka.github.io/posts/multi-node-vllm/"><meta name="generator" content="Astro v4.16.3"><!-- General Meta Tags --><title>Two Boxes, One Model - Playing With Multi-Node vLLM | ermolushka (blog)</title><meta name="title" content="Two Boxes, One Model - Playing With Multi-Node vLLM | ermolushka (blog)"><meta name="description" content="A small learning experiment splitting an LLM across two GPU boxes with Ray and vLLM - tensor parallel vs pipeline parallel, and why plain ethernet ruins both."><meta name="author" content="Alexey Ermolaev"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="ermolushka (blog)" href="/rss.xml"><link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt"><!-- Open Graph / Facebook --><meta property="og:title" content="Two Boxes, One Model - Playing With Multi-Node vLLM | ermolushka (blog)"><meta property="og:description" content="A small learning experiment splitting an LLM across two GPU boxes with Ray and vLLM - tensor parallel vs pipeline parallel, and why plain ethernet ruins both."><meta property="og:url" content="https://ermolushka.github.io/posts/multi-node-vllm/"><meta property="og:image" content="https://ermolushka.github.io/posts/two-boxes-one-model-playing-with-multi-node-v-llm.png"><!-- Article Published/Modified time --><meta property="article:published_time" content="2026-07-25T10:00:00.000Z"><meta property="article:modified_time" content="2026-07-25T10:00:00.000Z"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://ermolushka.github.io/posts/multi-node-vllm/"><meta property="twitter:title" content="Two Boxes, One Model - Playing With Multi-Node vLLM | ermolushka (blog)"><meta property="twitter:description" content="A small learning experiment splitting an LLM across two GPU boxes with Ray and vLLM - tensor parallel vs pipeline parallel, and why plain ethernet ruins both."><meta property="twitter:image" content="https://ermolushka.github.io/posts/two-boxes-one-model-playing-with-multi-node-v-llm.png"><!-- Google JSON-LD Structured data --><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"Two Boxes, One Model - Playing With Multi-Node vLLM | ermolushka (blog)","description":"A small learning experiment splitting an LLM across two GPU boxes with Ray and vLLM - tensor parallel vs pipeline parallel, and why plain ethernet ruins both.","image":"https://ermolushka.github.io/posts/two-boxes-one-model-playing-with-multi-node-v-llm.png","url":"https://ermolushka.github.io/posts/multi-node-vllm/","datePublished":"2026-07-25T10:00:00.000Z","dateModified":"2026-07-25T10:00:00.000Z","author":[{"@type":"Person","name":"Alexey Ermolaev","url":"https://github.com/ermolushka"}]}</script><!-- Google Font --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600&display=swap" rel="preload" as="style" onload="this.onload=null; this.rel='stylesheet';" crossorigin><meta name="theme-color" content=""><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script src="/toggle-theme.js" async></script><link rel="stylesheet" href="/_astro/about.MgIWGv0K.css">
+<style>a:where(.astro-blwjyjpt){position:relative;text-decoration-line:underline;text-decoration-style:dashed}a:where(.astro-blwjyjpt):hover{top:-.125rem;--tw-text-opacity: 1;color:rgba(var(--color-accent),var(--tw-text-opacity))}a:where(.astro-blwjyjpt):focus-visible{padding:.25rem}a:where(.astro-blwjyjpt) svg:where(.astro-blwjyjpt){margin-right:-1.25rem;height:1.5rem;width:1.5rem;--tw-scale-x: .95;--tw-scale-y: .95;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skew(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));--tw-text-opacity: 1;color:rgba(var(--color-text-base),var(--tw-text-opacity));opacity:.8}.group:where(.astro-blwjyjpt):hover a:where(.astro-blwjyjpt) svg:where(.astro-blwjyjpt){fill:rgb(var(--color-accent))}
+@keyframes astroFadeInOut{0%{opacity:1}to{opacity:0}}@keyframes astroFadeIn{0%{opacity:0;mix-blend-mode:plus-lighter}to{opacity:1;mix-blend-mode:plus-lighter}}@keyframes astroFadeOut{0%{opacity:1;mix-blend-mode:plus-lighter}to{opacity:0;mix-blend-mode:plus-lighter}}@keyframes astroSlideFromRight{0%{transform:translate(100%)}}@keyframes astroSlideFromLeft{0%{transform:translate(-100%)}}@keyframes astroSlideToRight{to{transform:translate(100%)}}@keyframes astroSlideToLeft{to{transform:translate(-100%)}}@media (prefers-reduced-motion){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}[data-astro-transition-scope]{animation:none!important}}
+</style>
+<link rel="stylesheet" href="/_astro/index.BZi4Mn2x.css"><script type="module" src="/_astro/hoisted.DZVGwCIu.js"></script>
+<script>!(function(w,p,f,c){if(!window.crossOriginIsolated && !navigator.serviceWorker) return;c=w[p]=Object.assign(w[p]||{},{"lib":"/~partytown/","debug":false});c[f]=(c[f]||[]).concat(["dataLayer.push"])})(window,'partytown','forward');/* Partytown 0.11.0 - MIT QwikDev */
+const t={preserveBehavior:!1},e=e=>{if("string"==typeof e)return[e,t];const[n,r=t]=e;return[n,{...t,...r}]},n=Object.freeze((t=>{const e=new Set;let n=[];do{Object.getOwnPropertyNames(n).forEach((t=>{"function"==typeof n[t]&&e.add(t)}))}while((n=Object.getPrototypeOf(n))!==Object.prototype);return Array.from(e)})());!function(t,r,o,i,a,s,c,l,d,p,u=t,f){function h(){f||(f=1,"/"==(c=(s.lib||"/~partytown/")+(s.debug?"debug/":""))[0]&&(d=r.querySelectorAll('script[type="text/partytown"]'),i!=t?i.dispatchEvent(new CustomEvent("pt1",{detail:t})):(l=setTimeout(v,(null==s?void 0:s.fallbackTimeout)||1e4),r.addEventListener("pt0",w),a?y(1):o.serviceWorker?o.serviceWorker.register(c+(s.swPath||"partytown-sw.js"),{scope:c}).then((function(t){t.active?y():t.installing&&t.installing.addEventListener("statechange",(function(t){"activated"==t.target.state&&y()}))}),console.error):v())))}function y(e){p=r.createElement(e?"script":"iframe"),t._pttab=Date.now(),e||(p.style.display="block",p.style.width="0",p.style.height="0",p.style.border="0",p.style.visibility="hidden",p.setAttribute("aria-hidden",!0)),p.src=c+"partytown-"+(e?"atomics.js?v=0.11.0":"sandbox-sw.html?"+t._pttab),r.querySelector(s.sandboxParent||"body").appendChild(p)}function v(n,o){for(w(),i==t&&(s.forward||[]).map((function(n){const[r]=e(n);delete t[r.split(".")[0]]})),n=0;n<d.length;n++)(o=r.createElement("script")).innerHTML=d[n].innerHTML,o.nonce=s.nonce,r.head.appendChild(o);p&&p.parentNode.removeChild(p)}function w(){clearTimeout(l)}s=t.partytown||{},i==t&&(s.forward||[]).map((function(r){const[o,{preserveBehavior:i}]=e(r);u=t,o.split(".").map((function(e,r,o){var a;u=u[o[r]]=r+1<o.length?u[o[r]]||(a=o[r+1],n.includes(a)?[]:{}):(()=>{let e=null;if(i){const{methodOrProperty:n,thisObject:r}=((t,e)=>{let n=t;for(let t=0;t<e.length-1;t+=1)n=n[e[t]];return{thisObject:n,methodOrProperty:e.length>0?n[e[e.length-1]]:void 0}})(t,o);"function"==typeof n&&(e=(...t)=>n.apply(r,...t))}return function(){let n;return e&&(n=e(arguments)),(t._ptf=t._ptf||[]).push(o,arguments),n}})()}))})),"complete"==r.readyState?h():(t.addEventListener("DOMContentLoaded",h),t.addEventListener("load",h))}(window,document,navigator,top,window.crossOriginIsolated);;(e=>{e.addEventListener("astro:before-swap",e=>{let r=document.body.querySelector("iframe[src*='/~partytown/']");if(r)e.newDocument.body.append(r)})})(document);</script><style>[data-astro-transition-scope="astro-jjzijb6g-1"] { view-transition-name: two-boxes-one-model-playing-with-multi-node-v-llm; }@layer astro { ::view-transition-old(two-boxes-one-model-playing-with-multi-node-v-llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(two-boxes-one-model-playing-with-multi-node-v-llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(two-boxes-one-model-playing-with-multi-node-v-llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(two-boxes-one-model-playing-with-multi-node-v-llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-jjzijb6g-1"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-jjzijb6g-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-jjzijb6g-1"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-jjzijb6g-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-jjzijb6g-1"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-jjzijb6g-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-jjzijb6g-1"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-jjzijb6g-1"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-2"] { view-transition-name: v-llm; }@layer astro { ::view-transition-old(v-llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(v-llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(v-llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(v-llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-2"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-2"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-2"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-2"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-2"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-2"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-2"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-2"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-3"] { view-transition-name: llm; }@layer astro { ::view-transition-old(llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(llm) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-3"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-3"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-3"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-3"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-3"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-3"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-3"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-3"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-4"] { view-transition-name: inference; }@layer astro { ::view-transition-old(inference) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(inference) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(inference) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(inference) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-4"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-4"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-4"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-4"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-4"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-4"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-4"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-4"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-5"] { view-transition-name: ray; }@layer astro { ::view-transition-old(ray) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(ray) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(ray) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(ray) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-5"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-5"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-5"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-5"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-5"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-5"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-5"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-5"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-6"] { view-transition-name: networking; }@layer astro { ::view-transition-old(networking) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(networking) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(networking) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(networking) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-6"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-6"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-6"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-6"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-6"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-6"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-6"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-6"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style><style>[data-astro-transition-scope="astro-36ssibgs-7"] { view-transition-name: qwen; }@layer astro { ::view-transition-old(qwen) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }::view-transition-new(qwen) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back]::view-transition-old(qwen) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back]::view-transition-new(qwen) { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; } }[data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-7"],
+			[data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-7"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-7"],
+			[data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-7"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }[data-astro-transition=back][data-astro-transition-fallback="old"] [data-astro-transition-scope="astro-36ssibgs-7"],
+			[data-astro-transition=back][data-astro-transition-fallback="old"][data-astro-transition-scope="astro-36ssibgs-7"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeOut; }[data-astro-transition=back][data-astro-transition-fallback="new"] [data-astro-transition-scope="astro-36ssibgs-7"],
+			[data-astro-transition=back][data-astro-transition-fallback="new"][data-astro-transition-scope="astro-36ssibgs-7"] { 
+	animation-duration: 180ms;
+	animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+	animation-fill-mode: both;
+	animation-name: astroFadeIn; }</style></head> <body>  <header class="astro-3ef6ksr2"> <a id="skip-to-content" href="#main-content" class="astro-3ef6ksr2">Skip to content</a> <div class="nav-container astro-3ef6ksr2"> <div class="top-nav-wrap astro-3ef6ksr2"> <a href="/" class="logo whitespace-nowrap astro-3ef6ksr2"> ermolushka (blog) </a> <nav id="nav-menu" class="astro-3ef6ksr2"> <button class="hamburger-menu focus-outline astro-3ef6ksr2" aria-label="Open Menu" aria-expanded="false" aria-controls="menu-items"> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="menu-icon astro-3ef6ksr2"> <line x1="7" y1="12" x2="21" y2="12" class="line astro-3ef6ksr2"></line> <line x1="3" y1="6" x2="21" y2="6" class="line astro-3ef6ksr2"></line> <line x1="12" y1="18" x2="21" y2="18" class="line astro-3ef6ksr2"></line> <line x1="18" y1="6" x2="6" y2="18" class="close astro-3ef6ksr2"></line> <line x1="6" y1="6" x2="18" y2="18" class="close astro-3ef6ksr2"></line> </svg> </button> <ul id="menu-items" class="display-none sm:flex astro-3ef6ksr2"> <li class="astro-3ef6ksr2"> <a href="/posts/" class=" astro-3ef6ksr2">
+Posts
+</a> </li> <li class="astro-3ef6ksr2"> <a href="/tags/" class=" astro-3ef6ksr2">
+Tags
+</a> </li> <li class="astro-3ef6ksr2"> <a href="/about/" class=" astro-3ef6ksr2">
+About
+</a> </li> <li class="astro-3ef6ksr2"> <a href="/archives/" class="group inline-block hover:text-skin-accent focus-outline flex justify-center p-3 sm:p-1 astro-3ef6ksr2" aria-label="archives" title="Archives"> <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icons-tabler-outline !hidden sm:!inline-block astro-3ef6ksr2">  <path stroke="none" d="M0 0h24v24H0z" fill="none" class="astro-3ef6ksr2"></path> <path d="M3 4m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" class="astro-3ef6ksr2"></path> <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" class="astro-3ef6ksr2"></path> <path d="M10 12l4 0" class="astro-3ef6ksr2"></path>  </svg> <span class="sm:sr-only astro-3ef6ksr2">
+Archives
+</span> </a> </li> <li class="astro-3ef6ksr2"> <a href="/search/" class="group inline-block hover:text-skin-accent focus-outline p-3 sm:p-1  flex astro-3ef6ksr2" aria-label="search" title="Search"> <svg xmlns="http://www.w3.org/2000/svg" class="scale-125 sm:scale-100 astro-3ef6ksr2"><path d="M19.023 16.977a35.13 35.13 0 0 1-1.367-1.384c-.372-.378-.596-.653-.596-.653l-2.8-1.337A6.962 6.962 0 0 0 16 9c0-3.859-3.14-7-7-7S2 5.141 2 9s3.14 7 7 7c1.763 0 3.37-.66 4.603-1.739l1.337 2.8s.275.224.653.596c.387.363.896.854 1.384 1.367l1.358 1.392.604.646 2.121-2.121-.646-.604c-.379-.372-.885-.866-1.391-1.36zM9 14c-2.757 0-5-2.243-5-5s2.243-5 5-5 5 2.243 5 5-2.243 5-5 5z" class="astro-3ef6ksr2"></path> </svg> <span class="sr-only astro-3ef6ksr2">Search</span> </a> </li> <li class="astro-3ef6ksr2"> <button id="theme-btn" class="focus-outline astro-3ef6ksr2" title="Toggles light & dark" aria-label="auto" aria-live="polite"> <svg xmlns="http://www.w3.org/2000/svg" id="moon-svg" class="astro-3ef6ksr2"> <path d="M20.742 13.045a8.088 8.088 0 0 1-2.077.271c-2.135 0-4.14-.83-5.646-2.336a8.025 8.025 0 0 1-2.064-7.723A1 1 0 0 0 9.73 2.034a10.014 10.014 0 0 0-4.489 2.582c-3.898 3.898-3.898 10.243 0 14.143a9.937 9.937 0 0 0 7.072 2.93 9.93 9.93 0 0 0 7.07-2.929 10.007 10.007 0 0 0 2.583-4.491 1.001 1.001 0 0 0-1.224-1.224zm-2.772 4.301a7.947 7.947 0 0 1-5.656 2.343 7.953 7.953 0 0 1-5.658-2.344c-3.118-3.119-3.118-8.195 0-11.314a7.923 7.923 0 0 1 2.06-1.483 10.027 10.027 0 0 0 2.89 7.848 9.972 9.972 0 0 0 7.848 2.891 8.036 8.036 0 0 1-1.484 2.059z" class="astro-3ef6ksr2"></path> </svg> <svg xmlns="http://www.w3.org/2000/svg" id="sun-svg" class="astro-3ef6ksr2"> <path d="M6.993 12c0 2.761 2.246 5.007 5.007 5.007s5.007-2.246 5.007-5.007S14.761 6.993 12 6.993 6.993 9.239 6.993 12zM12 8.993c1.658 0 3.007 1.349 3.007 3.007S13.658 15.007 12 15.007 8.993 13.658 8.993 12 10.342 8.993 12 8.993zM10.998 19h2v3h-2zm0-17h2v3h-2zm-9 9h3v2h-3zm17 0h3v2h-3zM4.219 18.363l2.12-2.122 1.415 1.414-2.12 2.122zM16.24 6.344l2.122-2.122 1.414 1.414-2.122 2.122zM6.342 7.759 4.22 5.637l1.415-1.414 2.12 2.122zm13.434 10.605-1.414 1.414-2.122-2.122 1.414-1.414z" class="astro-3ef6ksr2"></path> </svg> </button> </li> </ul> </nav> </div> </div> <div class="max-w-3xl mx-auto px-4"> <hr class="border-skin-line" aria-hidden="true"> </div> </header>   <div class="post-hero astro-vj4tpspi"> <img src="/art/multi-node.svg" alt="" aria-hidden="true" class="post-hero-img astro-vj4tpspi" width="1200" height="380" loading="eager"> <div class="post-hero-fade astro-vj4tpspi"></div> </div><div class="post-back astro-vj4tpspi"> <button class="focus-outline back-btn astro-vj4tpspi" onclick="(() => (history.length === 1) ? window.location = '/' : history.back())()"> <svg xmlns="http://www.w3.org/2000/svg" class="astro-vj4tpspi"><path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z" class="astro-vj4tpspi"></path></svg> <span class="astro-vj4tpspi">back</span> </button> </div> <div class="post-grid astro-vj4tpspi"> <main id="main-content" class="astro-vj4tpspi"> <!-- ── Post Header ── --> <div class="post-header astro-vj4tpspi"> <div class="post-deco astro-vj4tpspi" aria-hidden="true">
+▸ notes/2026 </div> <h1 class="post-title astro-vj4tpspi" data-astro-transition-scope="astro-jjzijb6g-1">Two Boxes, One Model - Playing With Multi-Node vLLM</h1> <div class="post-meta astro-vj4tpspi"> <div class="flex items-center space-x-2 opacity-80"><svg xmlns="http://www.w3.org/2000/svg" class="scale-100 inline-block h-6 w-6 min-w-[1.375rem] fill-skin-base" aria-hidden="true"><path d="M7 11h2v2H7zm0 4h2v2H7zm4-4h2v2h-2zm0 4h2v2h-2zm4-4h2v2h-2zm0 4h2v2h-2z"></path><path d="M5 22h14c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2h-2V2h-2v2H9V2H7v2H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2zM19 8l.001 12H5V8h14z"></path></svg><span class="sr-only">Published:</span><span class="italic text-base"><time dateTime="2026-07-25T10:00:00.000Z">Jul 25, 2026</time><span aria-hidden="true"> | </span><span class="sr-only"> at </span><span class="text-nowrap">12:00 PM</span></span></div> <span class="reading-time astro-vj4tpspi">· 5 min read</span> </div> <p class="post-description astro-vj4tpspi">A small learning experiment splitting an LLM across two GPU boxes with Ray and vLLM - tensor parallel vs pipeline parallel, and why plain ethernet ruins both.</p> <div class="post-tags astro-vj4tpspi"> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/v-llm/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-2"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">v-llm</span> </a> </li> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/llm/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-3"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">llm</span> </a> </li> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/inference/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-4"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">inference</span> </a> </li> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/ray/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-5"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">ray</span> </a> </li> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/networking/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-6"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">networking</span> </a> </li> <li class="inline-block my-1 underline-offset-4 astro-blwjyjpt"> <a href="/tags/qwen/" class="text-sm pr-2 group astro-blwjyjpt" data-astro-transition-scope="astro-36ssibgs-7"> <svg xmlns="http://www.w3.org/2000/svg" class=" scale-75 astro-blwjyjpt"><path d="M16.018 3.815 15.232 8h-4.966l.716-3.815-1.964-.37L8.232 8H4v2h3.857l-.751 4H3v2h3.731l-.714 3.805 1.965.369L8.766 16h4.966l-.714 3.805 1.965.369.783-4.174H20v-2h-3.859l.751-4H21V8h-3.733l.716-3.815-1.965-.37zM14.106 14H9.141l.751-4h4.966l-.752 4z" class="astro-blwjyjpt"></path> </svg>
+&nbsp;<span class="astro-blwjyjpt">qwen</span> </a> </li>  </div> </div> <div class="post-divider astro-vj4tpspi" aria-hidden="true">─── ✦ ───</div> <!-- ── Article ── --> <article id="article" class="prose mx-auto font-sans astro-vj4tpspi"> <p>After the <a href="/posts/vllm-benchmark-4090">4090 quantization post</a> I got curious about the other way of scaling a model - not trying to fit it into one GPU, but spreading it across several boxes. Especially, it’s relevant for huge models which can’t phisycally fit even within single node with 8 GPUs or so. I had two separate machines with one GPU each, so I set up a small multi-node vLLM cluster just to see how it behaves. Nothing production-grade, just a small learning exercise to build intuition for tensor parallelism vs pipeline parallelism when the “interconnect” is regular ethernet instead of NVLink or InfiniBand. You can rent a bigger machine (with Blackwell) with advanced networking, but it was a bit much for this.</p>
+<h2 id="the-setup">The setup</h2>
+<p>Two boxes, one GPU each, connected over a normal network - no fancy fabric. <a href="https://github.com/ray-project/ray">Ray</a> ties them together into one cluster, and vLLM’s distributed executor uses that cluster to shard a model across both GPUs. I used <code>Qwen3.5-27B-FP8</code> which can perfectly fit even within one 48GB VRAM GPU (e.g L40S in AWS, but I wanted to learn multi-node setup so kept it easy).</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> same image on both boxes</span></span>
+<span class="line"><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic">cat</span><span style="color:#D32F2F;--shiki-dark:#7FDBCA"> ></span><span style="color:#2B5581;--shiki-dark:#ECC48D"> Dockerfile.ray</span><span style="color:#D32F2F;--shiki-dark:#7FDBCA"> &#x3C;&#x3C;</span><span style="color:#24292EFF;--shiki-dark:#D9F5DD">'EOF'</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">FROM vllm/vllm-openai:v0.21.0</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">RUN pip install --no-cache-dir "ray[default]"</span></span>
+<span class="line"><span style="color:#24292EFF;--shiki-dark:#D9F5DD">EOF</span></span>
+<span class="line"><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic">docker</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> build</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -f</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> Dockerfile.ray</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -t</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> vllm-ray:v0.21.0</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> .</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> node A (head, it also behaves as a worker in Ray)</span></span>
+<span class="line"><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic">bash</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> run_cluster.sh</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> vllm-ray:v0.21.0</span><span style="color:#24292EFF;--shiki-dark:#C5E478"> $HEAD_IP</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> --head</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> ~/.cache/huggingface</span><span style="color:#24292EFF;--shiki-dark:#F78C6C"> \</span></span>
+<span class="line"><span style="color:#2B5581;--shiki-dark:#82AAFF">  -e</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> VLLM_HOST_IP=</span><span style="color:#24292EFF;--shiki-dark:#C5E478">$HEAD_IP</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -e</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> NCCL_SOCKET_IFNAME=</span><span style="color:#24292EFF;--shiki-dark:#C5E478">$NIC</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -e</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> GLOO_SOCKET_IFNAME=</span><span style="color:#24292EFF;--shiki-dark:#C5E478">$NIC</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> node B (worker)</span></span>
+<span class="line"><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic">bash</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> run_cluster.sh</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> vllm-ray:v0.21.0</span><span style="color:#24292EFF;--shiki-dark:#C5E478"> $HEAD_IP</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> --worker</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> ~/.cache/huggingface</span><span style="color:#24292EFF;--shiki-dark:#F78C6C"> \</span></span>
+<span class="line"><span style="color:#2B5581;--shiki-dark:#82AAFF">  -e</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> VLLM_HOST_IP=</span><span style="color:#24292EFF;--shiki-dark:#C5E478">$WORKER_IP</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -e</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> NCCL_SOCKET_IFNAME=</span><span style="color:#24292EFF;--shiki-dark:#C5E478">$NIC</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -e</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> GLOO_SOCKET_IFNAME=</span><span style="color:#24292EFF;--shiki-dark:#C5E478">$NIC</span></span>
+<span class="line"></span></code></pre>
+<p><code>docker exec -it node ray status</code> on a head node should report two nodes and two GPUs once both containers are up. If it only sees one, it’s almost always a security group / firewall issue - Ray needs 6379 and 8265 open between the boxes plus the NCCL ephemeral port range.</p>
+<p>Both boxes also need the full model weights locally beforehand (each node only loads its own shard onto the GPU, but it still reads from the full checkpoint on disk):</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#C2C3C5;--shiki-dark:#637777">#</span><span style="color:#C2C3C5;font-style:inherit;--shiki-dark:#637777;--shiki-dark-font-style:italic"> on both machines</span></span>
+<span class="line"><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic">docker</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> exec</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -it</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> node</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> hf</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> download</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> Qwen/Qwen3.5-27B-FP8</span></span>
+<span class="line"></span></code></pre>
+<h2 id="tensor-parallel-first">Tensor parallel first</h2>
+<p>With <code>--tensor-parallel-size 2</code>, vLLM splits every layer’s weight matrices across both GPUs and all-reduces the activations after each one:</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic">docker</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> exec</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -d</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> node</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> bash</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -lc</span><span style="color:#24292EFF;--shiki-dark:#F78C6C"> \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#D9F5DD">  '</span><span style="color:#22863A;--shiki-dark:#ECC48D">vllm serve Qwen/Qwen3.5-27B-FP8 \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">     --distributed-executor-backend ray \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">     --tensor-parallel-size 2 \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">     --max-model-len 16384 \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">     --enforce-eager --port 8000</span><span style="color:#22863A;--shiki-dark:#D9F5DD">'</span></span>
+<span class="line"></span></code></pre>
+<p>It came up fine, <code>nvidia-smi</code> on both boxes showed the model actually sharded (~14GB resident on each), and requests worked. But once I started benchmarking, throughput was rough - single-digit requests per minute at any real concurrency. That makes sense: TP does an all-reduce after <em>every layer</em>, dozens of times per forward pass, and each one is a round trip over the network. Fine on NVLink where that round trip is nanoseconds, really bad on a regular NIC.</p>
+<h2 id="pipeline-parallel-instead">Pipeline parallel instead</h2>
+<p>Pipeline parallelism only crosses the network once per token instead of once per layer - node A runs the first half of the layers, hands the activations to node B, which runs the rest:</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic">docker</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> exec</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -d</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> node</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> bash</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -lc</span><span style="color:#24292EFF;--shiki-dark:#F78C6C"> \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#D9F5DD">  '</span><span style="color:#22863A;--shiki-dark:#ECC48D">vllm serve Qwen/Qwen3.5-27B-FP8 \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">     --distributed-executor-backend ray \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">     --pipeline-parallel-size 2 --tensor-parallel-size 1 \</span></span>
+<span class="line"><span style="color:#22863A;--shiki-dark:#ECC48D">     --max-model-len 16384 --enforce-eager --port 8000</span><span style="color:#22863A;--shiki-dark:#D9F5DD">'</span></span>
+<span class="line"></span></code></pre>
+<p>Better, but still not great. I tried the usual fixes - dropping <code>--enforce-eager</code> to get CUDA graphs back, cutting <code>--max-model-len</code> to free up more KV cache, chunked prefill, more concurrent sequences. None of it moved the needle much:</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>requests:        30  (ok=30, failed=0)</span></span>
+<span class="line"><span>throughput:      5 RPM</span></span>
+<span class="line"><span>latency  p95:    136.55s</span></span>
+<span class="line"><span>decode tput:     33 output tok/s (aggregate)</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>Turns out that’s the actual floor for this setup, not something you can tune away. In PP, every single decoded token has to cross the wire once - stage 0 computes its half, ships the activations to stage 1 over TCP, stage 1 finishes and sends the token back. My interconnect added roughly 25-30ms per hop, so ~33 tok/s was basically a hard ceiling set by network latency, independent of batching or CUDA graphs. Removing <code>--enforce-eager</code> barely changed anything - it cuts kernel launch overhead, not network round trips.</p>
+<h2 id="the-boring-answer-wins">The boring answer wins</h2>
+<p>The thing that actually got good throughput was giving up on splitting the model at all. I switched to a smaller model (<code>Qwen3-8B-FP8</code>) and ran one independent vLLM instance per box, no Ray, no distributed backend, just plain single-GPU serving on each:</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6F42C1;font-style:inherit;--shiki-dark:#82AAFF;--shiki-dark-font-style:italic">docker</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> run</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> -d</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> --gpus</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> all</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> --network</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> host</span><span style="color:#24292EFF;--shiki-dark:#F78C6C"> \</span></span>
+<span class="line"><span style="color:#2B5581;--shiki-dark:#82AAFF">  -e</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> HF_TOKEN=</span><span style="color:#24292EFF;--shiki-dark:#C5E478">$HF_TOKEN</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> --name</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> vllm-8b</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> vllm/vllm-openai:v0.21.0</span><span style="color:#24292EFF;--shiki-dark:#F78C6C"> \</span></span>
+<span class="line"><span style="color:#2B5581;--shiki-dark:#82AAFF">  --model</span><span style="color:#2B5581;--shiki-dark:#ECC48D"> Qwen/Qwen3-8B-FP8</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> --max-model-len</span><span style="color:#1976D2;--shiki-dark:#F78C6C"> 8192</span><span style="color:#24292EFF;--shiki-dark:#F78C6C"> \</span></span>
+<span class="line"><span style="color:#2B5581;--shiki-dark:#82AAFF">  --max-num-seqs</span><span style="color:#1976D2;--shiki-dark:#F78C6C"> 128</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> --gpu-memory-utilization</span><span style="color:#1976D2;--shiki-dark:#F78C6C"> 0.90</span><span style="color:#2B5581;--shiki-dark:#82AAFF"> --port</span><span style="color:#1976D2;--shiki-dark:#F78C6C"> 8000</span></span>
+<span class="line"></span></code></pre>
+<p>Then a small client round-robins requests across both endpoints (a <code>call_model.py</code> script, roughly 100 lines with <code>ThreadPoolExecutor</code> and percentile math). Paced at a realistic 125 RPM which I had in mind as a benchmark number:</p>
+<pre class="astro-code astro-code-themes min-light night-owl" style="background-color:#ffffff;--shiki-dark-bg:#011627;color:#24292eff;--shiki-dark:#d6deeb; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;" tabindex="0" data-language="plaintext"><code><span class="line"><span>requests:        250  (ok=250, failed=0)</span></span>
+<span class="line"><span>throughput:      117 RPM achieved, offered 125.0</span></span>
+<span class="line"><span>latency  p95:    11.23s</span></span>
+<span class="line"><span>decode tput:     353 output tok/s (aggregate)</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>Ten times the aggregate decode throughput of the cross-node 27B setup, with a model that’s still perfectly usable for a lot of low-thinking tasks. Two independent replicas behind a load balancer beat one model artificially glued across a slow network - which is obvious in retrospect, but it’s a different thing to feel it in actual numbers than to just know it abstractly.</p>
+<h2 id="watching-it-happen">Watching it happen</h2>
+<p>I also wired up Prometheus + Grafana + a DCGM exporter on each box, scraping vLLM’s own <code>/metrics</code> (only exposed on the head, since that’s the API server aggregating the whole TP group) plus GPU utilization from both nodes using . The useful bit was watching GPU util sit low while the NIC maxed out during the MoE experiment I tried afterward - a nice visual confirmation that the bottleneck really was the network and not the GPUs sitting idle for no reason.</p> </article> <hr class="my-8 border-dashed astro-vj4tpspi"> <div class="post-footer-actions astro-vj4tpspi"> <button id="back-to-top" class="focus-outline action-btn hover:opacity-75 astro-vj4tpspi"> <svg xmlns="http://www.w3.org/2000/svg" class="rotate-90 astro-vj4tpspi"><path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z" class="astro-vj4tpspi"></path></svg> <span class="astro-vj4tpspi">back to top</span> </button> <div class="social-icons astro-wkojbtzc"> <span class="italic astro-wkojbtzc">Share this post on:</span> <div class="text-center astro-wkojbtzc"> <a href="https://wa.me/?text=https://ermolushka.github.io/posts/multi-node-vllm/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post via WhatsApp"> <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="icon-tabler"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+      <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"></path>
+      <path d="M9 10a0.5 .5 0 0 0 1 0v-1a0.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a0.5 .5 0 0 0 0 -1h-1a0.5 .5 0 0 0 0 1"></path>
+    </svg> <span class="sr-only astro-wkojbtzc">Share this post via WhatsApp</span> </a><a href="https://www.facebook.com/sharer.php?u=https://ermolushka.github.io/posts/multi-node-vllm/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post on Facebook"> <svg
+    xmlns="http://www.w3.org/2000/svg"
+    class="icon-tabler"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+    <path
+      d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"
+    ></path>
+  </svg> <span class="sr-only astro-wkojbtzc">Share this post on Facebook</span> </a><a href="https://x.com/intent/post?url=https://ermolushka.github.io/posts/multi-node-vllm/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post on X"> <svg  
+      xmlns="http://www.w3.org/2000/svg"
+      class="icon-tabler"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 4l11.733 16h4.267l-11.733 -16z" /><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
+    </svg> <span class="sr-only astro-wkojbtzc">Share this post on X</span> </a><a href="https://t.me/share/url?url=https://ermolushka.github.io/posts/multi-node-vllm/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post via Telegram"> <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="icon-tabler"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4"></path>
+      </svg> <span class="sr-only astro-wkojbtzc">Share this post via Telegram</span> </a><a href="https://pinterest.com/pin/create/button/?url=https://ermolushka.github.io/posts/multi-node-vllm/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post on Pinterest"> <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="icon-tabler"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+      <line x1="8" y1="20" x2="12" y2="11"></line>
+      <path d="M10.7 14c.437 1.263 1.43 2 2.55 2c2.071 0 3.75 -1.554 3.75 -4a5 5 0 1 0 -9.7 1.7"></path>
+      <circle cx="12" cy="12" r="9"></circle>
+    </svg> <span class="sr-only astro-wkojbtzc">Share this post on Pinterest</span> </a><a href="mailto:?subject=See%20this%20post&#38;body=https://ermolushka.github.io/posts/multi-node-vllm/" class="group inline-block hover:text-skin-accent link-button astro-wkojbtzc" title="Share this post via email"> <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="icon-tabler"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+      <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+      <polyline points="3 7 12 13 21 7"></polyline>
+    </svg> <span class="sr-only astro-wkojbtzc">Share this post via email</span> </a> </div> </div>  </div> <!-- ── Prev / Next ── --> <nav class="prev-next-nav astro-vj4tpspi" aria-label="Post navigation"> <a href="/posts/rvllm" class="nav-post nav-prev astro-vj4tpspi"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-arrow astro-vj4tpspi"> <path stroke="none" d="M0 0h24v24H0z" fill="none" class="astro-vj4tpspi"></path> <path d="M15 6l-6 6l6 6" class="astro-vj4tpspi"></path> </svg> <div class="astro-vj4tpspi"> <div class="nav-label astro-vj4tpspi">previous</div> <div class="nav-title astro-vj4tpspi">rvllm - A Small LLM Inference Engine in Rust</div> </div> </a> <a href="/posts/kv-cache-scheduler" class="nav-post nav-next astro-vj4tpspi"> <div class="astro-vj4tpspi"> <div class="nav-label astro-vj4tpspi">next</div> <div class="nav-title astro-vj4tpspi">Building a KV Cache Block Scheduler in Rust</div> </div> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-arrow astro-vj4tpspi"> <path stroke="none" d="M0 0h24v24H0z" fill="none" class="astro-vj4tpspi"></path> <path d="M9 6l6 6l-6 6" class="astro-vj4tpspi"></path> </svg> </a> </nav> </main> <!-- ── Sticky TOC Sidebar ── --> <aside class="toc-sidebar astro-vj4tpspi"> <nav class="toc astro-obewoz47" aria-label="Table of contents"><div class="toc-title astro-obewoz47">Contents</div><ul class="toc-list astro-obewoz47"><li class="toc-item toc-depth-2 astro-obewoz47"><a href="#the-setup" class="toc-link astro-obewoz47" data-heading="the-setup">The setup</a></li><li class="toc-item toc-depth-2 astro-obewoz47"><a href="#tensor-parallel-first" class="toc-link astro-obewoz47" data-heading="tensor-parallel-first">Tensor parallel first</a></li><li class="toc-item toc-depth-2 astro-obewoz47"><a href="#pipeline-parallel-instead" class="toc-link astro-obewoz47" data-heading="pipeline-parallel-instead">Pipeline parallel instead</a></li><li class="toc-item toc-depth-2 astro-obewoz47"><a href="#the-boring-answer-wins" class="toc-link astro-obewoz47" data-heading="the-boring-answer-wins">The boring answer wins</a></li><li class="toc-item toc-depth-2 astro-obewoz47"><a href="#watching-it-happen" class="toc-link astro-obewoz47" data-heading="watching-it-happen">Watching it happen</a></li></ul></nav> </aside> </div> <footer class="mt-auto astro-sz7xmlte"> <div class="max-w-3xl mx-auto px-0"> <hr class="border-skin-line" aria-hidden="true"> </div> <div class="footer-wrapper astro-sz7xmlte"> <div class="social-icons flex astro-upu6fzxr"> <a href="https://github.com/ermolushka" class="group inline-block hover:text-skin-accent link-button astro-upu6fzxr" title=" ermolushka (blog) on Github"> <svg
+    xmlns="http://www.w3.org/2000/svg"
+    class="icon-tabler"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+    <path
+      d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5"
+    ></path>
+  </svg> <span class="sr-only astro-upu6fzxr"> ermolushka (blog) on Github</span> </a> </div>  <div class="copyright-wrapper astro-sz7xmlte"> <span class="astro-sz7xmlte">Copyright &#169; 2026</span> <span class="separator astro-sz7xmlte">&nbsp;|&nbsp;</span> <span class="astro-sz7xmlte">All rights reserved.</span> </div> </div> </footer>   </body></html>  <script data-astro-rerun>
+  /** Progress bar at top */
+  function createProgressBar() {
+    const progressContainer = document.createElement("div");
+    progressContainer.className =
+      "progress-container fixed top-0 z-10 h-1 w-full bg-skin-fill";
+    const progressBar = document.createElement("div");
+    progressBar.className = "progress-bar h-1 w-0 bg-skin-accent";
+    progressBar.id = "myBar";
+    progressContainer.appendChild(progressBar);
+    document.body.appendChild(progressContainer);
+  }
+  createProgressBar();
+
+  function updateScrollProgress() {
+    document.addEventListener("scroll", () => {
+      const winScroll =
+        document.body.scrollTop || document.documentElement.scrollTop;
+      const height =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      const myBar = document.getElementById("myBar");
+      if (myBar) myBar.style.width = scrolled + "%";
+    });
+  }
+  updateScrollProgress();
+
+  /** Heading anchor links */
+  function addHeadingLinks() {
+    const headings = Array.from(
+      document.querySelectorAll("h2, h3, h4, h5, h6"),
+    );
+    for (const heading of headings) {
+      heading.classList.add("group");
+      const link = document.createElement("a");
+      link.className =
+        "heading-link ml-2 opacity-0 group-hover:opacity-100 focus:opacity-100";
+      link.href = "#" + heading.id;
+      const span = document.createElement("span");
+      span.ariaHidden = "true";
+      span.innerText = "#";
+      link.appendChild(span);
+      heading.appendChild(link);
+    }
+  }
+  addHeadingLinks();
+
+  /** Copy buttons on code blocks */
+  function attachCopyButtons() {
+    const copyButtonLabel = "copy";
+    const codeBlocks = Array.from(document.querySelectorAll("pre"));
+    for (const codeBlock of codeBlocks) {
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+      const copyButton = document.createElement("button");
+      copyButton.className =
+        "copy-code absolute right-3 -top-3 rounded bg-skin-card px-2 py-1 text-xs leading-4 text-skin-base font-medium";
+      copyButton.innerHTML = copyButtonLabel;
+      codeBlock.setAttribute("tabindex", "0");
+      codeBlock.appendChild(copyButton);
+      codeBlock?.parentNode?.insertBefore(wrapper, codeBlock);
+      wrapper.appendChild(codeBlock);
+      copyButton.addEventListener("click", async () => {
+        await copyCode(codeBlock, copyButton);
+      });
+    }
+    async function copyCode(block, button) {
+      const code = block.querySelector("code");
+      const text = code?.innerText;
+      await navigator.clipboard.writeText(text ?? "");
+      button.innerText = "copied!";
+      setTimeout(() => {
+        button.innerText = copyButtonLabel;
+      }, 700);
+    }
+  }
+  attachCopyButtons();
+
+  /** Back to top */
+  function backToTop() {
+    document.querySelector("#back-to-top")?.addEventListener("click", () => {
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+    });
+  }
+  backToTop();
+
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+  );
+</script>

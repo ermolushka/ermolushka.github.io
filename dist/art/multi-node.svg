@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="100%" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="m-bg" x1="0" y1="0" x2="1200" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#050a08"/>
+      <stop offset="100%" stop-color="#081410"/>
+    </linearGradient>
+    <radialGradient id="m-glow-a" cx="290" cy="190" r="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981" stop-opacity=".14"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="m-glow-b" cx="910" cy="190" r="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity=".14"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="m-gf">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <style>
+    .m-lbl { animation: m-breathe 3s ease-in-out infinite; }
+    @keyframes m-breathe { 0%,100%{opacity:.4} 50%{opacity:.85} }
+
+    /* packet traveling across the wire, ~2.6s round trip */
+    @keyframes m-pkt-out { 0%{transform:translateX(0);opacity:0} 6%{opacity:1} 46%{transform:translateX(460px);opacity:1} 52%{opacity:0} 100%{opacity:0} }
+    @keyframes m-pkt-back { 0%,50%{transform:translateX(460px);opacity:0} 56%{opacity:1} 96%{transform:translateX(0);opacity:1} 100%{opacity:0} }
+    .m-pkt-out  { animation: m-pkt-out 2.6s ease-in-out infinite; }
+    .m-pkt-back { animation: m-pkt-back 2.6s ease-in-out infinite; }
+
+    @keyframes m-wire { 0%,4%{stroke-opacity:.15} 8%,44%{stroke-opacity:.55} 50%,54%{stroke-opacity:.15} 58%,94%{stroke-opacity:.55} 98%,100%{stroke-opacity:.15} }
+    .m-wire { animation: m-wire 2.6s ease-in-out infinite; }
+
+    @keyframes m-gpu-a { 0%,4%{opacity:.35} 8%,44%{opacity:1} 50%,100%{opacity:.35} }
+    @keyframes m-gpu-b { 0%,54%{opacity:.35} 58%,94%{opacity:1} 98%,100%{opacity:.35} }
+    .m-gpu-a { animation: m-gpu-a 2.6s ease-in-out infinite; }
+    .m-gpu-b { animation: m-gpu-b 2.6s ease-in-out infinite; }
+  </style>
+
+  <rect width="1200" height="380" fill="url(#m-bg)"/>
+  <circle cx="290" cy="190" r="200" fill="url(#m-glow-a)"/>
+  <circle cx="910" cy="190" r="200" fill="url(#m-glow-b)"/>
+
+  <g stroke="#10b981" stroke-width=".3" opacity=".04">
+    <line x1="0" y1="90"  x2="1200" y2="90"/>
+    <line x1="0" y1="190" x2="1200" y2="190"/>
+    <line x1="0" y1="290" x2="1200" y2="290"/>
+  </g>
+
+  <text x="600" y="40" text-anchor="middle" fill="#6ee7b7" font-family="IBM Plex Mono,monospace" font-size="12" opacity=".55">2× node · vLLM + Ray · tensor / pipeline parallel</text>
+
+  <!-- Node A -->
+  <text x="290" y="86" text-anchor="middle" fill="#6ee7b7" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5" class="m-lbl">NODE A · head</text>
+  <rect x="170" y="102" width="240" height="150" rx="8" fill="#061b14" stroke="#10b981" stroke-width="1" stroke-opacity=".4"/>
+  <rect x="190" y="122" width="90" height="60" rx="4" class="m-gpu-a" fill="#0a2a1e" stroke="#34d399" stroke-width="1"/>
+  <text x="235" y="156" text-anchor="middle" fill="#6ee7b7" font-family="IBM Plex Mono,monospace" font-size="9" class="m-gpu-a">GPU 0</text>
+  <text x="235" y="205" text-anchor="middle" fill="#34d399" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".55">ray head :6379</text>
+  <text x="235" y="222" text-anchor="middle" fill="#34d399" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".55">vllm serve :8000</text>
+  <text x="235" y="239" text-anchor="middle" fill="#34d399" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".4">NCCL_SOCKET_IFNAME</text>
+
+  <!-- Node B -->
+  <text x="910" y="86" text-anchor="middle" fill="#67e8f9" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5" class="m-lbl">NODE B · worker</text>
+  <rect x="790" y="102" width="240" height="150" rx="8" fill="#061a1f" stroke="#06b6d4" stroke-width="1" stroke-opacity=".4"/>
+  <rect x="920" y="122" width="90" height="60" rx="4" class="m-gpu-b" fill="#082630" stroke="#22d3ee" stroke-width="1"/>
+  <text x="965" y="156" text-anchor="middle" fill="#67e8f9" font-family="IBM Plex Mono,monospace" font-size="9" class="m-gpu-b">GPU 0</text>
+  <text x="965" y="205" text-anchor="middle" fill="#22d3ee" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".55">ray worker</text>
+  <text x="965" y="222" text-anchor="middle" fill="#22d3ee" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".55">shard 2/2</text>
+  <text x="965" y="239" text-anchor="middle" fill="#22d3ee" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".4">plain ethernet</text>
+
+  <!-- wire between nodes -->
+  <line x1="410" y1="177" x2="790" y2="177" stroke="#818cf8" stroke-width="1" class="m-wire"/>
+  <g class="m-pkt-out" filter="url(#m-gf)">
+    <circle cx="410" cy="177" r="4" fill="#a5b4fc"/>
+  </g>
+  <g class="m-pkt-back" filter="url(#m-gf)">
+    <circle cx="410" cy="177" r="4" fill="#67e8f9"/>
+  </g>
+  <text x="600" y="165" text-anchor="middle" fill="#a5b4fc" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".45">activations, per token</text>
+
+  <!-- metrics strip -->
+  <line x1="130" y1="300" x2="1070" y2="300" stroke="#10b981" stroke-width=".4" stroke-opacity=".2"/>
+  <text x="290" y="326" text-anchor="middle" fill="#6ee7b7" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5">TP=2 all-reduce / layer</text>
+  <text x="600" y="326" text-anchor="middle" fill="#a5b4fc" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5">~25-30ms hop over ethernet</text>
+  <text x="910" y="326" text-anchor="middle" fill="#67e8f9" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5">PP=2 one handoff / token</text>
+
+  <text x="600" y="356" text-anchor="middle" fill="#10b981" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".2">multi-node vLLM · Ray · learning experiment</text>
+</svg>
