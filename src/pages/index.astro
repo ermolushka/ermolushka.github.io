@@ -7,8 +7,9 @@ import LinkButton from "@components/LinkButton.astro";
 import Hr from "@components/Hr.astro";
 import Card from "@components/Card";
 import Socials from "@components/Socials.astro";
+import BlockMap from "@components/BlockMap.astro";
 import getSortedPosts from "@utils/getSortedPosts";
-import { SITE, SOCIALS } from "@config";
+import { HERO, SITE, SOCIALS } from "@config";
 
 const posts = await getCollection("blog");
 
@@ -23,56 +24,21 @@ const socialCount = SOCIALS.filter((social) => social.active).length;
   <Header />
   <main id="main-content">
     <section id="hero">
-      <h1>$ ~/ermolushka</h1>
-      <a
-        target="_blank"
-        href="/rss.xml"
-        class="rss-link"
-        aria-label="rss feed"
-        title="RSS Feed"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="rss-icon"
-          ><path
-            d="M19 20.001C19 11.729 12.271 5 4 5v2c7.168 0 13 5.832 13 13.001h2z"
-          ></path><path
-            d="M12 20.001h2C14 14.486 9.514 10 4 10v2c4.411 0 8 3.589 8 8.001z"
-          ></path><circle cx="6" cy="18" r="2"></circle>
-        </svg>
-        <span class="sr-only">RSS Feed</span>
-      </a>
-
-      <p>
-        Hey there! I'm sharing my journey through the tech world here. You'll
-        find my thoughts on programming, occasional tutorials, and things I
-        learn along the way. No frills, just honest experiences and useful bits
-        of knowledge that might help other developers. This space is where I
-        document my experiments, successes, and yes, those interesting failures
-        that taught me something valuable.
-      </p>
-      <p>
-        Read the
-        <LinkButton
-          className="underline decoration-dashed underline-offset-4 hover:text-skin-accent"
-          href="/posts"
-        >
-          blog posts
-        </LinkButton> or check
-        <LinkButton
-          className="underline decoration-dashed underline-offset-4 hover:text-skin-accent"
-          href="/about"
-        >
-          about me
-        </LinkButton> for more info.
-      </p>
+      <h1>ermolushka</h1>
+      <p class="lede">{HERO.intro}</p>
       {
-        // only display if at least one social link is enabled
-        socialCount > 0 && (
-          <div class="social-wrapper">
-            <div class="social-links">Social Links:</div>
-            <Socials />
-          </div>
+        HERO.now && (
+          <p class="now">
+            <span class="now-dot" aria-hidden="true" />
+            Building {HERO.now}
+          </p>
         )
       }
+      <BlockMap posts={sortedPosts} />
+      <div class="social-wrapper">
+        <Socials />
+        <a href="/rss.xml" class="rss-link" aria-label="RSS feed">rss</a>
+      </div>
     </section>
 
     <Hr />
@@ -82,7 +48,7 @@ const socialCount = SOCIALS.filter((social) => social.active).length;
         <>
           <section id="featured">
             <h2>Featured</h2>
-            <ul>
+            <ul class="post-list">
               {featuredPosts.map(({ data, slug }) => (
                 <Card
                   href={`/posts/${slug}/`}
@@ -101,7 +67,7 @@ const socialCount = SOCIALS.filter((social) => social.active).length;
       recentPosts.length > 0 && (
         <section id="recent-posts">
           <h2>Recent Posts</h2>
-          <ul>
+          <ul class="post-list">
             {recentPosts.map(
               ({ data, slug }, index) =>
                 index < SITE.postPerIndex && (
@@ -133,37 +99,50 @@ const socialCount = SOCIALS.filter((social) => social.active).length;
 </Layout>
 
 <style>
-  /* ===== Hero Section ===== */
+  /* ===== Hero ===== */
   #hero {
-    @apply pb-6 pt-8;
+    @apply pb-6 pt-10;
   }
   #hero h1 {
-    @apply my-4 inline-block text-3xl font-bold sm:my-8 sm:text-5xl;
+    @apply mb-4 text-[clamp(2.25rem,8.5vw,4.5rem)] font-light leading-none;
+    font-stretch: 100%;
+    letter-spacing: -0.06em;
   }
-  #hero .rss-link {
-    @apply mb-6;
+  #hero .lede {
+    @apply mb-6 max-w-[34rem] text-xl;
   }
-  #hero .rss-icon {
-    @apply mb-2 h-6 w-6 scale-110 fill-skin-accent sm:mb-3 sm:scale-125;
+  #hero .now {
+    @apply mb-8 flex items-center gap-2 font-mono text-sm opacity-80;
   }
-  #hero p {
-    @apply my-2;
+  .now-dot {
+    @apply inline-block h-2 w-2 shrink-0 rounded-full bg-skin-accent;
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .now-dot {
+      animation: none;
+    }
   }
   .social-wrapper {
-    @apply mt-4 flex flex-col sm:flex-row sm:items-center;
+    @apply mt-6 flex items-center gap-4;
   }
-  .social-links {
-    @apply mb-1 mr-2 whitespace-nowrap sm:mb-0;
+  .rss-link {
+    @apply font-mono text-sm underline decoration-dashed underline-offset-4 hover:text-skin-accent;
   }
 
-  /* ===== Featured & Recent Posts Sections ===== */
+  /* ===== Post lists ===== */
   #featured,
   #recent-posts {
-    @apply pb-6 pt-12;
+    @apply pb-6 pt-10;
   }
   #featured h2,
   #recent-posts h2 {
-    @apply text-2xl font-semibold tracking-wide;
+    @apply text-lg font-semibold;
   }
   .all-posts-btn-wrapper {
     @apply my-8 text-center;

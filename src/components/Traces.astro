@@ -1,0 +1,100 @@
+---
+// Faint circuit traces in the outer margins; a signal pulse runs along each.
+// Fixed behind the page, only on wide screens where the margins are empty.
+const traces = [
+  "M22 0 V210 L52 240 V520 L22 550 V1000",
+  "M64 0 V110 L94 140 V420 L124 450 V780 L94 810 V1000",
+  "M104 0 V320 L74 350 V660 L104 690 V1000",
+  "M140 0 V60 L116 84 V250 L140 274 V900 L116 924 V1000",
+];
+const pads = [
+  [22, 550],
+  [124, 450],
+  [104, 690],
+  [140, 274],
+];
+---
+
+<div class="traces" aria-hidden="true">
+  {
+    ["left", "right"].map((side) => (
+      <svg class={`strip ${side}`} viewBox="0 0 160 1000" preserveAspectRatio="xMidYMid slice">
+        {traces.map((d) => (
+          <path d={d} class="wire" vector-effect="non-scaling-stroke" />
+        ))}
+        {traces.map((d, i) => (
+          <path
+            d={d}
+            class="pulse"
+            pathLength="1000"
+            vector-effect="non-scaling-stroke"
+            style={`--dur:${11 + i * 3}s;--delay:${(i * 2.7 + (side === "right" ? 4 : 0)).toFixed(1)}s`}
+          />
+        ))}
+        {pads.map(([x, y]) => (
+          <circle cx={x} cy={y} r="4" class="pad" />
+        ))}
+      </svg>
+    ))
+  }
+</div>
+
+<style>
+  .traces {
+    display: none;
+    pointer-events: none;
+  }
+  @media (min-width: 1440px) {
+    .traces {
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+  }
+  .strip {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 160px;
+    fill: none;
+    stroke-width: 1.5;
+  }
+  .strip.left {
+    left: 0;
+  }
+  .strip.right {
+    right: 0;
+    transform: scaleX(-1);
+  }
+  .wire {
+    stroke: rgb(var(--color-accent));
+    opacity: 0.12;
+  }
+  .pad {
+    fill: rgb(var(--color-fill));
+    stroke: rgb(var(--color-accent));
+    stroke-width: 1.5;
+    opacity: 0.2;
+  }
+  .pulse {
+    stroke: rgb(var(--color-accent));
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 40 960;
+    stroke-dashoffset: 40;
+    opacity: 0.55;
+    animation: travel var(--dur) linear var(--delay) infinite;
+  }
+  @keyframes travel {
+    to {
+      stroke-dashoffset: -1000;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse {
+      animation: none;
+      opacity: 0;
+    }
+  }
+</style>

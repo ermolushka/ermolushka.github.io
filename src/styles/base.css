@@ -5,20 +5,20 @@
 @layer base {
   :root,
   html[data-theme="light"] {
-    --color-fill: 249, 247, 242;
-    --color-text-base: 28, 25, 23;
-    --color-accent: 59, 91, 219;
-    --color-card: 237, 234, 224;
-    --color-card-muted: 210, 205, 192;
-    --color-border: 215, 211, 200;
+    --color-fill: 228, 233, 214;
+    --color-text-base: 16, 40, 31;
+    --color-accent: 138, 90, 0;
+    --color-card: 214, 221, 198;
+    --color-card-muted: 184, 195, 170;
+    --color-border: 176, 189, 163;
   }
   html[data-theme="dark"] {
-    --color-fill: 18, 20, 32;
-    --color-text-base: 225, 221, 210;
-    --color-accent: 255, 120, 50;
-    --color-card: 28, 32, 50;
-    --color-card-muted: 45, 50, 75;
-    --color-border: 55, 62, 92;
+    --color-fill: 15, 24, 20;
+    --color-text-base: 240, 243, 232;
+    --color-accent: 232, 184, 84;
+    --color-card: 24, 38, 32;
+    --color-card-muted: 40, 62, 52;
+    --color-border: 48, 70, 60;
   }
   #sun-svg,
   html[data-theme="dark"] #moon-svg {
@@ -29,7 +29,15 @@
     display: block;
   }
   body {
-    @apply flex min-h-[100svh] flex-col bg-skin-fill font-mono text-skin-base selection:bg-skin-accent/70 selection:text-skin-inverted;
+    @apply flex min-h-[100svh] flex-col bg-skin-fill font-sans text-[1.0625rem] leading-relaxed text-skin-base selection:bg-skin-accent/70 selection:text-skin-inverted;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: "Martian Mono", "IBM Plex Mono", monospace;
+    font-stretch: 85%;
+    letter-spacing: -0.02em;
   }
   section,
   footer {
@@ -76,9 +84,9 @@
   .prose figcaption,
   .prose dt,
   .prose dd {
-    font-family: "Inter", system-ui, sans-serif;
-    font-size: 1rem;
-    line-height: 1.75;
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 1.125rem;
+    line-height: 1.7;
   }
   .prose h1,
   .prose h2,
@@ -86,13 +94,26 @@
   .prose h4,
   .prose h5,
   .prose h6 {
-    font-family: "IBM Plex Mono", monospace;
-    letter-spacing: -0.01em;
+    font-family: "Martian Mono", "IBM Plex Mono", monospace;
+    font-stretch: 85%;
+    letter-spacing: -0.02em;
   }
   .prose pre,
   .prose pre code,
   .prose code {
     font-family: "IBM Plex Mono", monospace !important;
+  }
+
+  /* Light type on dark looks thinner, so give prose a touch more weight there */
+  html[data-theme="dark"] .prose p,
+  html[data-theme="dark"] .prose li,
+  html[data-theme="dark"] .prose blockquote {
+    font-weight: 450;
+  }
+  /* Post banners ship a dark and a light SVG; show the one for the theme */
+  html[data-theme="light"] .post-hero-img.dark,
+  html:not([data-theme="light"]) .post-hero-img.light {
+    display: none;
   }
 
   /* ===== scrollbar ===== */

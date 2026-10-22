@@ -19,6 +19,13 @@ export const SITE: Site = {
   // },
 };
 
+// Homepage hero copy. Set `now` to what you are building; leave it empty to hide the line.
+export const HERO = {
+  intro:
+    "Alex Ermolaev. Systems engineering. Notes on low-level code, LLM inference and security.",
+  now: "",
+};
+
 export const LOCALE = {
   lang: "en", // html lang code. Set this empty and default will be "en"
   langTag: ["en-EN"], // BCP 47 Language Tags. Set this empty [] to use the environment default

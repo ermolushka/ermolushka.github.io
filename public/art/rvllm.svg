@@ -114,35 +114,35 @@
   <!-- continuous batching mini-rows under the pipeline -->
   <text x="60" y="252" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5" class="r-lbl">continuous batching</text>
   <g class="r-rowa">
-    <rect x="60" y="260" width="200" height="10" rx="2" fill="#2a1600"/>
+    <rect x="60" y="260" width="200" height="10" rx="2" fill="#f97316" fill-opacity=".35"/>
     <text x="266" y="269" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".55">req A</text>
   </g>
   <g class="r-rowb">
-    <rect x="60" y="278" width="140" height="10" rx="2" fill="#2a1600"/>
+    <rect x="60" y="278" width="140" height="10" rx="2" fill="#f97316" fill-opacity=".35"/>
     <text x="206" y="287" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".55">req B</text>
   </g>
   <g class="r-rowc">
-    <rect x="60" y="296" width="260" height="10" rx="2" fill="#2a1600"/>
+    <rect x="60" y="296" width="260" height="10" rx="2" fill="#f97316" fill-opacity=".35"/>
     <text x="326" y="305" fill="#fdba74" font-family="IBM Plex Mono,monospace" font-size="8" opacity=".55">req C</text>
   </g>
 
   <!-- DEVICE TARGETS PANEL -->
   <line x1="1030" y1="60" x2="1030" y2="320" stroke="#f97316" stroke-width=".5" stroke-opacity=".2"/>
-  <text x="1112" y="62" text-anchor="middle" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5" class="r-lbl">DEVICES</text>
+  <text x="1114" y="62" text-anchor="middle" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".5" class="r-lbl">DEVICES</text>
 
-  <rect x="1050" y="80" width="124" height="34" rx="4" fill="#1a0d00" stroke="#4ade80" stroke-width="1"/>
-  <circle cx="1064" cy="97" r="4" fill="#4ade80"/>
-  <text x="1078" y="101" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="11">CPU · candle</text>
+  <rect x="1048" y="80" width="132" height="34" rx="4" fill="#1a0d00" stroke="#4ade80" stroke-width="1"/>
+  <circle cx="1062" cy="97" r="4" fill="#4ade80"/>
+  <text x="1075" y="101" fill="#86efac" font-family="IBM Plex Mono,monospace" font-size="10">CPU · candle</text>
 
-  <rect x="1050" y="124" width="124" height="34" rx="4" fill="none" stroke="#7a4a1e" stroke-width="1" stroke-dasharray="3 3"/>
-  <circle cx="1064" cy="141" r="4" fill="none" stroke="#7a4a1e" stroke-width="1.2"/>
-  <text x="1078" y="145" fill="#c2894f" font-family="IBM Plex Mono,monospace" font-size="11">CUDA · cudarc</text>
+  <rect x="1048" y="124" width="132" height="34" rx="4" fill="none" stroke="#7a4a1e" stroke-width="1" stroke-dasharray="3 3"/>
+  <circle cx="1062" cy="141" r="4" fill="none" stroke="#7a4a1e" stroke-width="1.2"/>
+  <text x="1075" y="145" fill="#c2894f" font-family="IBM Plex Mono,monospace" font-size="10">CUDA · cudarc</text>
 
-  <rect x="1050" y="168" width="124" height="34" rx="4" fill="none" stroke="#7a4a1e" stroke-width="1" stroke-dasharray="3 3"/>
-  <circle cx="1064" cy="185" r="4" fill="none" stroke="#7a4a1e" stroke-width="1.2"/>
-  <text x="1078" y="189" fill="#c2894f" font-family="IBM Plex Mono,monospace" font-size="11">Metal · metal-rs</text>
+  <rect x="1048" y="168" width="132" height="34" rx="4" fill="none" stroke="#7a4a1e" stroke-width="1" stroke-dasharray="3 3"/>
+  <circle cx="1062" cy="185" r="4" fill="none" stroke="#7a4a1e" stroke-width="1.2"/>
+  <text x="1075" y="189" fill="#c2894f" font-family="IBM Plex Mono,monospace" font-size="10">Metal · metal-rs</text>
 
-  <text x="1112" y="230" text-anchor="middle" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".35">hand-written kernels</text>
+  <text x="1114" y="230" text-anchor="middle" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="9" opacity=".35">hand-written kernels</text>
 
   <text x="600" y="352" text-anchor="middle" fill="#f97316" font-family="IBM Plex Mono,monospace" font-size="10" opacity=".2">rvllm · Rust · github.com/ermolushka</text>
 </svg>
